@@ -3,9 +3,11 @@ import { ethers } from "ethers"
 import Identicon from 'identicon.js';
 
 interface HomeProps {
-    contract: ethers.Contract;
+  loading: boolean;
+  account: string | null;
+  contract: ethers.Contract;
+  web3Handler: () => Promise<void>;
 }
-
 interface Token {
     price: ethers.BigNumber;
     tokenId: ethers.BigNumber;
@@ -20,9 +22,8 @@ interface Item {
 }
 
   
-const Home: React.FC<HomeProps> = ({ contract }) => {
+const Home: React.FC<HomeProps> = ({ contract, loading, account, web3Handler }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [loading, setLoading] = useState(true)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentItemIndex, setCurrentItemIndex] = useState(0)
   const [marketItems, setMarketItems] = useState<any[]>([])
@@ -44,7 +45,6 @@ const Home: React.FC<HomeProps> = ({ contract }) => {
       return item
     }))
     setMarketItems(marketItems)
-    setLoading(false)
   }
   
   const buyMarketItem = async (item: Item) => {
