@@ -2,6 +2,7 @@ import logo from '../../public/logo.png';
 import Image from 'next/image';
 
 const Home = () => {
+  
   return (
     <div>
       <nav className="bg-black fixed top-0 w-full flex md:flex-nowrap p-0 shadow-md">        
