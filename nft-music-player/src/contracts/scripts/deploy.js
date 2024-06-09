@@ -25,21 +25,22 @@ async function main() {
 
 function saveFrontendFiles(contract, name) {
   const fs = require("fs");
-  const contractsDir = __dirname + "/src/contracts/contractsData";
+  const path = require("path");
+  const contractsDir = path.resolve(__dirname, "../contractsData");
 
   if (!fs.existsSync(contractsDir)) {
-    fs.mkdirSync(contractsDir);
+    fs.mkdirSync(contractsDir, { recursive: true });
   }
 
   fs.writeFileSync(
-    contractsDir + `/${name}-address.json`,
+    path.join(contractsDir, `${name}-address.json`),
     JSON.stringify({ address: contract.address }, undefined, 2)
   );
 
   const contractArtifact = artifacts.readArtifactSync(name);
 
   fs.writeFileSync(
-    contractsDir + `/${name}.json`,
+    path.join(contractsDir, `${name}.json`),
     JSON.stringify(contractArtifact, null, 2)
   );
 }

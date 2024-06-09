@@ -1,4 +1,3 @@
-import logo from '../../public/logo.png';
 import Image from 'next/image';
 
 const Home = () => {
@@ -26,8 +25,10 @@ const Home = () => {
               >
                 <Image
                   className="h-40 pointer-events-none animate-spin"
-                  src={logo}
+                  src="/logo.png"
                   alt="Logo"
+                  width={180}
+                  height={180}
                 />
               </a>
               <h1 className= "mt-5">Dapp University Starter Kit</h1>
