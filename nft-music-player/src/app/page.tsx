@@ -4,9 +4,9 @@ import Image from 'next/image';
 const Home = () => {
   return (
     <div>
-      <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+      <nav className="bg-black fixed top-0 w-full flex md:flex-nowrap p-0 shadow-md">        
         <a
-          className="navbar-brand col-sm-3 col-md-2 ms-3"
+          className="col-span-3 md:col-span-2 ml-3"
           href="http://www.dappuniversity.com/bootcamp"
           target="_blank"
           rel="noopener noreferrer"
@@ -14,9 +14,9 @@ const Home = () => {
           Dapp University
         </a>
       </nav>
-      <div className="container-fluid mt-5">
-        <div className="row">
-          <main role="main" className="col-lg-12 d-flex text-center">
+      <div className="container mx-auto mt-5">
+        <div className="flex">
+          <main role="main" className="col-span-12 lg:col-span-12 flex justify-center text-center">
             <div className="content mx-auto mt-5">
               <a
                 href="http://www.dappuniversity.com/bootcamp"
