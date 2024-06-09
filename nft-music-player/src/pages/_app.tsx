@@ -42,7 +42,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <div className="text-center">
       <nav className="bg-secondary text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
-          <Link href="http://www.dappuniversity.com/bootcamp" className="flex items-center">
+          <Link href="/" className="flex items-center">
             <Image src={logo} width={40} height={40} alt="Logo" />
             <span className="ml-2">Music NFT player</span>
           </Link>
