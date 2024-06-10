@@ -48,8 +48,8 @@ function MyApp({ Component, pageProps }: AppProps) {
           </Link>
           <div className="flex items-center">
             <Link href="/">Home</Link>
-            <Link href="/my-tokens">My Tokens</Link>
-            <Link href="/my-resales">My Resales</Link>
+            <Link href="/tokens">My Tokens</Link>
+            <Link href="/resales">My Resales</Link>
             {account ? (
               <a
                 href={`https://etherscan.io/address/${account}`}

@@ -76,8 +76,10 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
   })
 
   useEffect(() => {
-    !myTokens && loadMyTokens()
-  })
+    if (myTokens && myTokens.length === 0) {
+      loadMyTokens();
+    }
+  }, [myTokens]);
 
   if (loading) return (
     <main style={{ padding: "1rem 0" }}>

@@ -8,11 +8,12 @@ interface HomeProps {
   contract: ethers.Contract;
   web3Handler: () => Promise<void>;
 }
+
 interface Token {
     price: ethers.BigNumber;
     tokenId: ethers.BigNumber;
 }
-  
+
 interface Item {
     price: ethers.BigNumber;
     itemId: ethers.BigNumber;
@@ -21,13 +22,13 @@ interface Item {
     identicon: string;
 }
 
-  
 const Home: React.FC<HomeProps> = ({ contract, loading, account, web3Handler }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentItemIndex, setCurrentItemIndex] = useState(0)
   const [marketItems, setMarketItems] = useState<any[]>([])
 
+  
   const loadMarketplaceItems = async () => {
     const results: Token[] = await contract.getAllUnsoldTokens()
     const marketItems: Item[] = await Promise.all(results.map(async (i: Token) => {
@@ -85,8 +86,10 @@ const Home: React.FC<HomeProps> = ({ contract, loading, account, web3Handler }) 
   })
   
   useEffect(() => {
-    !marketItems && loadMarketplaceItems()
-  })
+    if (marketItems.length === 0) {
+      loadMarketplaceItems();
+    }
+  }, [marketItems]);
 
   if (loading) return (
     <main className="p-4">

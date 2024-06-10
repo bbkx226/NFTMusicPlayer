@@ -72,14 +72,11 @@ const Resales: FC<ResalesProps> = ({ contract, account, loading, web3Handler }) 
   })
 
   useEffect(() => {
-    !listedItems && loadMyResales()
-  })
+    if (listedItems && listedItems.length === 0) {
+      loadMyResales();
+    }
+  }, [listedItems]);
 
-  if (loading) return (
-    <main style={{ padding: "1rem 0" }}>
-      <h2>Loading...</h2>
-    </main>
-  )
   // Rest of the code remains the same
   if (loading) return (
     <main style={{ padding: "1rem 0" }}>
