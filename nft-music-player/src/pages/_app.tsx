@@ -12,17 +12,11 @@ declare global {
     ethereum: any;
   }
 }
-
+  
 function MyApp({ Component, pageProps }: AppProps) {
   const [loading, setLoading] = useState(true);
   const [account, setAccount] = useState<string | null>(null);
   const [contract, setContract] = useState({});
-
-  useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      web3Handler();
-    }
-  }, []);
 
   const web3Handler = async () => {
     const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -37,6 +31,12 @@ function MyApp({ Component, pageProps }: AppProps) {
     setContract(contract);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (typeof window.ethereum !== "undefined") {
+      web3Handler();
+    }
+  }, []);
 
   return (
     <div className="text-center">

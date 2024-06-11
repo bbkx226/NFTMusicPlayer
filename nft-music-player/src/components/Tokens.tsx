@@ -16,14 +16,6 @@ interface Item {
   resellPrice: null | string;
 }
 
-interface TokenProps {
-  args: {
-    price: ethers.BigNumber;
-    tokenId: number;
-  };
-  tokenId: number;
-}
-
 const Tokens: FC<TokensProps> = ({ contract }) => {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [isPlaying, setIsPlaying] = useState<null | boolean>(null);
@@ -38,11 +30,7 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
     // Get all unsold items/tokens
     const results = await contract.getMyTokens();
     const myTokens = await Promise.all(
-      results.map(async (i: TokenProps) => {
-        const args = i.args;
-        if (!args) {
-          return;
-        }
+      results.map(async i => {
         // get uri url from contract
         const uri = await contract.tokenURI(i.tokenId);
         // use uri to fetch the nft metadata stored on ipfs
@@ -51,8 +39,8 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
         // define item object
         const item = {
-          price: args.price,
-          itemId: args.tokenId,
+          price: i.price,
+          itemId: i.tokenId,
           name: metadata.name,
           audio: metadata.audio,
           identicon,
@@ -62,8 +50,10 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
       })
     );
     setMyTokens(myTokens);
+    console.log(myTokens);
     setLoading(false);
   };
+
   const resellItem = async (item: Item) => {
     if (resellPrice === "0" || item.itemId !== resellId || !resellPrice) return;
     // Get royalty fee
@@ -112,17 +102,34 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
                   <div className="px-6 py-4">
                     <div className="font-bold text-xl mb-2">{item.name}</div>
                     <div className="d-grid px-4">
-                      <button className="btn btn-secondary" onClick={() => {
-                        setPrevious(selected)
-                        setSelected(idx)
-                        if (!isPlaying || idx === selected) setIsPlaying(!isPlaying)
-                      }}>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setPrevious(selected);
+                          setSelected(idx);
+                          if (!isPlaying || idx === selected) setIsPlaying(!isPlaying);
+                        }}
+                      >
                         {isPlaying && selected === idx ? (
-                          <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor" className="bi bi-pause" viewBox="0 0 16 16">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="23"
+                            height="23"
+                            fill="currentColor"
+                            className="bi bi-pause"
+                            viewBox="0 0 16 16"
+                          >
                             <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z" />
                           </svg>
                         ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor" className="bi bi-play" viewBox="0 0 16 16">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="23"
+                            height="23"
+                            fill="currentColor"
+                            className="bi bi-play"
+                            viewBox="0 0 16 16"
+                          >
                             <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" />
                           </svg>
                         )}

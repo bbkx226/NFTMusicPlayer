@@ -5,7 +5,7 @@ module.exports = {
     compilers: [
       {
         version: "0.8.4"
-      },
+      }
     ]
   },
   paths: {
@@ -13,5 +13,5 @@ module.exports = {
     sources: "./src/contracts/contracts",
     cache: "./src/contracts/cache",
     tests: "./src/test"
-  },
+  }
 };
