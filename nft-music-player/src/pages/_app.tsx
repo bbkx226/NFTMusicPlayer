@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ethers } from "ethers"
-import NFTMusicPlayerAbi from '../contracts/contractsData/NFTMusicPlayer.json'
-import NFTMusicPlayerAddress from '../contracts/contractsData/NFTMusicPlayer-address.json'
+import NFTMusicPlayerAbi from '../abi/NFTMusicPlayer.json'
+import NFTMusicPlayerAddress from '../abi/NFTMusicPlayer-address.json'
 import type { AppProps } from 'next/app'
 import Link from 'next/link'
 import Image from 'next/image'

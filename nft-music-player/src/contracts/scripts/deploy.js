@@ -26,7 +26,7 @@ async function main() {
 function saveFrontendFiles(contract, name) {
   const fs = require("fs");
   const path = require("path");
-  const contractsDir = path.resolve(__dirname, "../contractsData");
+  const contractsDir = path.resolve(__dirname, "../abi");
 
   if (!fs.existsSync(contractsDir)) {
     fs.mkdirSync(contractsDir, { recursive: true });
