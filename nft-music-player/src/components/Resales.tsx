@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, FC } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
+import Image from "next/image";
 
 interface ResalesProps {
-  loading: boolean;
   account: string | null;
   contract: ethers.Contract;
-  web3Handler: () => Promise<void>;
 }
 
 interface Item {
@@ -17,9 +16,10 @@ interface Item {
   identicon: string;
 }
 
-const Resales: FC<ResalesProps> = ({ contract, account, loading, web3Handler }) => {
+const Resales: FC<ResalesProps> = ({ contract, account }) => {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [listedItems, setListedItems] = useState<Item[] | undefined>([]);
+  const [loading, setLoading] = useState(true);
   const [soldItems, setSoldItems] = useState<Item[] | undefined>([]);
   const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
   const [selected, setSelected] = useState(0);
@@ -63,6 +63,7 @@ const Resales: FC<ResalesProps> = ({ contract, account, loading, web3Handler }) 
       results.some(j => j.args && i && i.itemId.toString() === j.args.tokenId.toString())
     );
     setSoldItems(soldItems.filter(item => item !== undefined) as Item[]);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -78,7 +79,7 @@ const Resales: FC<ResalesProps> = ({ contract, account, loading, web3Handler }) 
     if (listedItems && listedItems.length === 0) {
       loadMyResales();
     }
-  }, [listedItems]);
+  });
 
   // Rest of the code remains the same
   if (loading)
@@ -133,7 +134,13 @@ const Resales: FC<ResalesProps> = ({ contract, account, loading, web3Handler }) 
                   {soldItems.map((item, idx) => (
                     <div key={idx} className="overflow-hidden">
                       <div className="bg-white rounded-lg shadow-md">
-                        <img className="w-full h-48 object-cover rounded-t-lg" src={item.identicon} alt={item.name} />
+                        <Image
+                          width={120}
+                          height={120}
+                          className="w-full h-48 object-cover rounded-t-lg"
+                          src={item.identicon}
+                          alt={item.name}
+                        />
                         <div className="p-4">
                           <h3 className="font-bold">{item.name}</h3>
                           <p className="mt-1">{ethers.utils.formatEther(item.price)} ETH</p>

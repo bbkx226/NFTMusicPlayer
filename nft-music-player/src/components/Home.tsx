@@ -110,7 +110,13 @@ const Home: React.FC<HomeProps> = ({ contract }) => {
                 <div className="card-header">
                   {currentItemIndex + 1} of {marketItems.length}
                 </div>
-                <Image alt="" className="card-img-top" src={marketItems[currentItemIndex].identicon} />
+                <Image
+                  alt=""
+                  className="card-img-top"
+                  src={marketItems[currentItemIndex].identicon}
+                  width={120}
+                  height={120}
+                />
                 <div className="card-body text-secondary">
                   <h2 className="card-title">{marketItems[currentItemIndex].name}</h2>
                   <div className="d-grid px-4">

@@ -3,10 +3,7 @@ import { ethers } from "ethers";
 import Identicon from "identicon.js";
 
 interface TokensProps {
-  loading: boolean;
-  account: string | null;
   contract: ethers.Contract;
-  web3Handler: () => Promise<void>;
 }
 
 interface Item {
@@ -21,7 +18,7 @@ interface Item {
 const Tokens: FC<TokensProps> = ({ contract }) => {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [isPlaying, setIsPlaying] = useState<null | boolean>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [myTokens, setMyTokens] = useState<Item[] | null>(null);
   const [selected, setSelected] = useState<number>(0);
   const [previous, setPrevious] = useState<null | number>(null);
@@ -44,7 +41,7 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
         const metadata = await response.json();
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
         // define item object
-        let item = {
+        const item = {
           price: args.price,
           itemId: args.tokenId,
           name: metadata.name,
@@ -80,7 +77,7 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
     if (myTokens && myTokens.length === 0) {
       loadMyTokens();
     }
-  }, [myTokens]);
+  });
 
   if (loading)
     return (
