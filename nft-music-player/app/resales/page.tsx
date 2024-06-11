@@ -1,27 +1,28 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+
 import { useBlockchain } from "../layout";
 
 interface Item {
-  price: ethers.BigNumber;
-  itemId: ethers.BigNumber;
-  name: string;
   audio: string;
   identicon: string;
+  itemId: ethers.BigNumber;
+  name: string;
+  price: ethers.BigNumber;
 }
 
 export default function Resales() {
-  const { contract, account } = useBlockchain();
+  const { account, contract } = useBlockchain();
   const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [listedItems, setListedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [soldItems, setSoldItems] = useState<Item[] | undefined>([]);
   const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
   const [selected, setSelected] = useState(0);
-  const [previous, setPrevious] = useState<number | null>(null);
+  const [previous, setPrevious] = useState<null | number>(null);
 
   const loadMyResales = async () => {
     if (contract) {
@@ -44,11 +45,11 @@ export default function Resales() {
           const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
           // define listed item object
           const purchasedItem: Item = {
-            price: args?.price ?? 0,
+            audio: metadata?.audio ?? "",
+            identicon,
             itemId: args?.tokenId ?? 0,
             name: metadata?.name ?? "",
-            audio: metadata?.audio ?? "",
-            identicon
+            price: args?.price ?? 0
           };
           return purchasedItem;
         })
@@ -97,12 +98,12 @@ export default function Resales() {
             <h2 className="text-2xl font-bold">Listed</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3">
               {listedItems.map((item, idx) => (
-                <div key={idx} className="overflow-hidden rounded-lg shadow-lg">
+                <div className="overflow-hidden rounded-lg shadow-lg" key={idx}>
                   <audio
-                    src={item.audio}
                     ref={el => {
                       if (el) audioRefs.current[idx] = el;
                     }}
+                    src={item.audio}
                   ></audio>
                   <div
                     className="w-full h-64 bg-cover bg-center"
@@ -132,14 +133,14 @@ export default function Resales() {
               {soldItems && soldItems.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3">
                   {soldItems.map((item, idx) => (
-                    <div key={idx} className="overflow-hidden">
+                    <div className="overflow-hidden" key={idx}>
                       <div className="bg-white rounded-lg shadow-md">
                         <Image
-                          width={120}
-                          height={120}
-                          className="w-full h-48 object-cover rounded-t-lg"
-                          src={item.identicon}
                           alt={item.name}
+                          className="w-full h-48 object-cover rounded-t-lg"
+                          height={120}
+                          src={item.identicon}
+                          width={120}
                         />
                         <div className="p-4">
                           <h3 className="font-bold">{item.name}</h3>

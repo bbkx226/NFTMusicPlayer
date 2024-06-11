@@ -1,14 +1,15 @@
 "use client";
 import type { Metadata } from "next";
-import "./globals.css";
-import React, { createContext, useContext, useState, useEffect } from "react";
+
 import { ethers } from "ethers";
+import Image from "next/image";
+import Link from "next/link";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 import NFTMusicPlayerAbi from "../abi/NFTMusicPlayer.json";
 import NFTMusicPlayerAddress from "../abi/NFTMusicPlayer-address.json";
-import Link from "next/link";
-import Image from "next/image";
 import logo from "../public/logo.png";
+import "./globals.css";
 
 declare global {
   interface Window {
@@ -17,9 +18,9 @@ declare global {
 }
 
 interface ContextProps {
-  loading: boolean;
-  account: string | null;
+  account: null | string;
   contract: ethers.Contract;
+  loading: boolean;
   web3Handler: () => Promise<void>;
 }
 
@@ -40,7 +41,7 @@ const dummyContract = new ethers.Contract(
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [account, setAccount] = useState<string | null>(null);
+  const [account, setAccount] = useState<null | string>(null);
   const [contract, setContract] = useState(dummyContract);
 
   const web3Handler = async () => {
@@ -69,8 +70,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="text-center">
           <nav className="bg-secondary text-white p-4">
             <div className="container mx-auto flex justify-between items-center">
-              <Link href="/" className="flex items-center">
-                <Image src={logo} width={40} height={40} alt="Logo" />
+              <Link className="flex items-center" href="/">
+                <Image alt="Logo" height={40} src={logo} width={40} />
                 <span className="ml-2">Music NFT player</span>
               </Link>
               <div className="flex items-center">
@@ -79,15 +80,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/resales">My Resales</Link>
                 {account ? (
                   <a
-                    href={`https://etherscan.io/address/${account}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="mx-4"
+                    href={`https://etherscan.io/address/${account}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
                   >
                     {account.slice(0, 5) + "..." + account.slice(38, 42)}
                   </a>
                 ) : (
-                  <button onClick={web3Handler} className="bg-white text-black px-4 py-2 rounded">
+                  <button className="bg-white text-black px-4 py-2 rounded" onClick={web3Handler}>
                     Connect Wallet
                   </button>
                 )}
@@ -95,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </nav>
           <div>
-            <BlockchainContext.Provider value={{ loading, account, contract, web3Handler }}>
+            <BlockchainContext.Provider value={{ account, contract, loading, web3Handler }}>
               {loading ? (
                 <div className="flex justify-center items-center h-screen">
                   <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>

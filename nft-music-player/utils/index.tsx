@@ -1,5 +1,6 @@
-import { useEffect, FC } from 'react';
-import * as serviceWorker from './serviceWorker';
+import { FC, useEffect } from "react";
+
+import * as serviceWorker from "./serviceWorker";
 
 const Home: FC = () => {
   useEffect(() => {

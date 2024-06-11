@@ -1,28 +1,29 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+
 import { useBlockchain } from "../layout";
 
 interface Item {
-  price: ethers.BigNumber;
-  itemId: number;
-  name: string;
   audio: string;
   identicon: string;
+  itemId: number;
+  name: string;
+  price: ethers.BigNumber;
   resellPrice: null | string;
 }
 
 export default function Tokens() {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
-  const [isPlaying, setIsPlaying] = useState<null | boolean>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [myTokens, setMyTokens] = useState<Item[] | null>(null);
   const [selected, setSelected] = useState<number>(0);
   const [previous, setPrevious] = useState<null | number>(null);
   const [resellId, setResellId] = useState<null | number>(null);
-  const [resellPrice, setResellPrice] = useState<string | number | readonly string[] | undefined>(undefined);
+  const [resellPrice, setResellPrice] = useState<number | readonly string[] | string | undefined>(undefined);
 
   const { contract } = useBlockchain();
 
@@ -40,11 +41,11 @@ export default function Tokens() {
           const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
           // define item object
           const item = {
-            price: i.price,
-            itemId: i.tokenId,
-            name: metadata.name,
             audio: metadata.audio,
             identicon,
+            itemId: i.tokenId,
+            name: metadata.name,
+            price: i.price,
             resellPrice: null
           };
           return item;
@@ -90,16 +91,16 @@ export default function Tokens() {
         <div className="px-5 container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-5">
             {myTokens.map((item, idx) => (
-              <div key={idx} className="overflow-hidden">
+              <div className="overflow-hidden" key={idx}>
                 <audio
-                  src={item.audio}
                   key={idx}
                   ref={el => {
                     if (el) audioRefs.current[idx] = el;
                   }}
+                  src={item.audio}
                 ></audio>
                 <div className="card">
-                  <Image width={120} height={120} alt="" className="w-full" src={item.identicon} />
+                  <Image alt="" className="w-full" height={120} src={item.identicon} width={120} />
                   <div className="px-6 py-4">
                     <div className="font-bold text-xl mb-2">{item.name}</div>
                     <div className="d-grid px-4">
@@ -113,23 +114,23 @@ export default function Tokens() {
                       >
                         {isPlaying && selected === idx ? (
                           <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="23"
-                            height="23"
-                            fill="currentColor"
                             className="bi bi-pause"
+                            fill="currentColor"
+                            height="23"
                             viewBox="0 0 16 16"
+                            width="23"
+                            xmlns="http://www.w3.org/2000/svg"
                           >
                             <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z" />
                           </svg>
                         ) : (
                           <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="23"
-                            height="23"
-                            fill="currentColor"
                             className="bi bi-play"
+                            fill="currentColor"
+                            height="23"
                             viewBox="0 0 16 16"
+                            width="23"
+                            xmlns="http://www.w3.org/2000/svg"
                           >
                             <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" />
                           </svg>
@@ -140,21 +141,21 @@ export default function Tokens() {
                   </div>
                   <div className="px-6 pt-4 pb-2">
                     <button
-                      onClick={() => resellItem(item)}
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      onClick={() => resellItem(item)}
                     >
                       Resell
                     </button>
                     <input
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       onChange={e => {
                         setResellId(item.itemId);
                         setResellPrice(e.target.value);
                       }}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      value={resellId === item.itemId ? resellPrice : ""}
+                      placeholder="Price in ETH"
                       required
                       type="number"
-                      placeholder="Price in ETH"
+                      value={resellId === item.itemId ? resellPrice : ""}
                     />
                   </div>
                 </div>
