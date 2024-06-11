@@ -1,11 +1,9 @@
+"use client";
 import { useState, useEffect, useRef } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
-
-interface HomeProps {
-  contract: ethers.Contract;
-}
+import { useBlockchain } from "./layout";
 
 interface Token {
   price: ethers.BigNumber;
@@ -20,7 +18,9 @@ interface Item {
   identicon: string;
 }
 
-const Home: React.FC<HomeProps> = ({ contract }) => {
+export default function Home() {
+  const { contract } = useBlockchain();
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const [loading, setLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -28,10 +28,10 @@ const Home: React.FC<HomeProps> = ({ contract }) => {
   const [marketItems, setMarketItems] = useState<Item[]>([]);
 
   const loadMarketplaceItems = async () => {
-    const results: Token[] = await contract.getAllUnsoldTokens();
+    const results: Token[] = await (contract && contract.getAllUnsoldTokens());
     const marketItems: Item[] = await Promise.all(
       results.map(async (i: Token) => {
-        const uri = await contract.tokenURI(i.tokenId);
+        const uri = contract !== null && contract !== undefined ? await contract.tokenURI(i.tokenId) : null;
         const response = await fetch(uri + ".json");
         const metadata = await response.json();
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
@@ -50,8 +50,10 @@ const Home: React.FC<HomeProps> = ({ contract }) => {
   };
 
   const buyMarketItem = async (item: Item) => {
-    await (await contract.buyToken(item.itemId, { value: item.price })).wait();
-    loadMarketplaceItems();
+    if (contract) {
+      await (await contract.buyToken(item.itemId, { value: item.price })).wait();
+      loadMarketplaceItems();
+    }
   };
 
   const skipSong = (forwards: boolean) => {
@@ -194,6 +196,4 @@ const Home: React.FC<HomeProps> = ({ contract }) => {
       )}
     </div>
   );
-};
-
-export default Home;
+}

@@ -9,9 +9,9 @@ module.exports = {
     ]
   },
   paths: {
-    artifacts: "./src/contracts/artifacts",
-    sources: "./src/contracts/contracts",
-    cache: "./src/contracts/cache",
-    tests: "./src/test"
+    artifacts: "./contracts/artifacts",
+    sources: "./contracts/contracts",
+    cache: "./contracts/cache",
+    tests: "./test"
   }
 };

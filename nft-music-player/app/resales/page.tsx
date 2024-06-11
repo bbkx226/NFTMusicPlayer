@@ -1,12 +1,9 @@
-import { useState, useEffect, useRef, FC } from "react";
+"use client";
+import { useState, useEffect, useRef } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
-
-interface ResalesProps {
-  account: string | null;
-  contract: ethers.Contract;
-}
+import { useBlockchain } from "../layout";
 
 interface Item {
   price: ethers.BigNumber;
@@ -16,9 +13,10 @@ interface Item {
   identicon: string;
 }
 
-const Resales: FC<ResalesProps> = ({ contract, account }) => {
+export default function Resales() {
+  const { contract, account } = useBlockchain();
   const audioRefs = useRef<HTMLAudioElement[]>([]);
-  const [listedItems, setListedItems] = useState<Item[] | undefined>([]);
+  const [listedItems, setListedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [soldItems, setSoldItems] = useState<Item[] | undefined>([]);
   const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
@@ -26,44 +24,46 @@ const Resales: FC<ResalesProps> = ({ contract, account }) => {
   const [previous, setPrevious] = useState<number | null>(null);
 
   const loadMyResales = async () => {
-    // Fetch resale items from marketplace by quering MarketItemRelisted events with the seller set as the user
-    let filter = contract.filters.MarketItemRelisted(null, account, null);
-    let results = await contract.queryFilter(filter);
-    // Fetch metadata of each nft and add that to item object.
-    const listedItems = await Promise.all(
-      results.map(async i => {
-        // fetch arguments from each result
-        const args = i.args;
-        if (!args) {
-          return;
-        }
-        // get uri url from nft contract
-        const uri = await contract.tokenURI(args.tokenId);
-        // use uri to fetch the nft metadata stored on ipfs
-        const response = await fetch(uri + ".json");
-        const metadata = await response.json();
-        const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
-        // define listed item object
-        const purchasedItem: Item = {
-          price: args?.price ?? 0,
-          itemId: args?.tokenId ?? 0,
-          name: metadata?.name ?? "",
-          audio: metadata?.audio ?? "",
-          identicon
-        };
-        return purchasedItem;
-      })
-    );
-    setListedItems(listedItems.filter(item => item !== undefined) as Item[]);
-    // Fetch sold resale items by quering MarketItemBought events with the seller set as the user.
-    filter = contract.filters.MarketItemBought(null, account, null, null);
-    results = await contract.queryFilter(filter);
-    // Filter out the sold items from the listedItems
-    const soldItems = listedItems.filter(i =>
-      results.some(j => j.args && i && i.itemId.toString() === j.args.tokenId.toString())
-    );
-    setSoldItems(soldItems.filter(item => item !== undefined) as Item[]);
-    setLoading(false);
+    if (contract) {
+      // Fetch resale items from marketplace by quering MarketItemRelisted events with the seller set as the user
+      let filter = contract?.filters.MarketItemRelisted(null, account, null);
+      let results = await contract?.queryFilter(filter);
+      // Fetch metadata of each nft and add that to item object.
+      const listedItems = await Promise.all(
+        results.map(async i => {
+          // fetch arguments from each result
+          const args = i.args;
+          if (!args) {
+            return;
+          }
+          // get uri url from nft contract
+          const uri = await contract?.tokenURI(args.tokenId);
+          // use uri to fetch the nft metadata stored on ipfs
+          const response = await fetch(uri + ".json");
+          const metadata = await response.json();
+          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
+          // define listed item object
+          const purchasedItem: Item = {
+            price: args?.price ?? 0,
+            itemId: args?.tokenId ?? 0,
+            name: metadata?.name ?? "",
+            audio: metadata?.audio ?? "",
+            identicon
+          };
+          return purchasedItem;
+        })
+      );
+      setListedItems(listedItems.filter(item => item !== undefined) as Item[]);
+      // Fetch sold resale items by quering MarketItemBought events with the seller set as the user.
+      filter = contract.filters.MarketItemBought(null, account, null, null);
+      results = await contract.queryFilter(filter);
+      // Filter out the sold items from the listedItems
+      const soldItems = listedItems.filter(i =>
+        results?.some(j => j.args && i && i.itemId.toString() === j.args.tokenId.toString())
+      );
+      setSoldItems(soldItems.filter(item => item !== undefined) as Item[]);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -164,6 +164,4 @@ const Resales: FC<ResalesProps> = ({ contract, account }) => {
       </div>
     </div>
   );
-};
-
-export default Resales;
+}

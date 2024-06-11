@@ -1,11 +1,9 @@
-import { useState, useEffect, useRef, FC } from "react";
+"use client";
+import { useState, useEffect, useRef } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
-
-interface TokensProps {
-  contract: ethers.Contract;
-}
+import { useBlockchain } from "../layout";
 
 interface Item {
   price: ethers.BigNumber;
@@ -16,7 +14,7 @@ interface Item {
   resellPrice: null | string;
 }
 
-const Tokens: FC<TokensProps> = ({ contract }) => {
+export default function Tokens() {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [isPlaying, setIsPlaying] = useState<null | boolean>(null);
   const [loading, setLoading] = useState(true);
@@ -26,36 +24,39 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
   const [resellId, setResellId] = useState<null | number>(null);
   const [resellPrice, setResellPrice] = useState<string | number | readonly string[] | undefined>(undefined);
 
+  const { contract } = useBlockchain();
+
   const loadMyTokens = async () => {
-    // Get all unsold items/tokens
-    const results = await contract.getMyTokens();
-    const myTokens = await Promise.all(
-      results.map(async i => {
-        // get uri url from contract
-        const uri = await contract.tokenURI(i.tokenId);
-        // use uri to fetch the nft metadata stored on ipfs
-        const response = await fetch(uri + ".json");
-        const metadata = await response.json();
-        const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
-        // define item object
-        const item = {
-          price: i.price,
-          itemId: i.tokenId,
-          name: metadata.name,
-          audio: metadata.audio,
-          identicon,
-          resellPrice: null
-        };
-        return item;
-      })
-    );
-    setMyTokens(myTokens);
-    console.log(myTokens);
-    setLoading(false);
+    if (contract) {
+      // Get all unsold items/tokens
+      const results = await contract.getMyTokens();
+      const myTokens = await Promise.all(
+        results.map(async i => {
+          // get uri url from contract
+          const uri = await contract.tokenURI(i.tokenId);
+          // use uri to fetch the nft metadata stored on ipfs
+          const response = await fetch(uri + ".json");
+          const metadata = await response.json();
+          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
+          // define item object
+          const item = {
+            price: i.price,
+            itemId: i.tokenId,
+            name: metadata.name,
+            audio: metadata.audio,
+            identicon,
+            resellPrice: null
+          };
+          return item;
+        })
+      );
+      setMyTokens(myTokens);
+      setLoading(false);
+    }
   };
 
   const resellItem = async (item: Item) => {
-    if (resellPrice === "0" || item.itemId !== resellId || !resellPrice) return;
+    if (resellPrice === "0" || item.itemId !== resellId || !resellPrice || !contract) return;
     // Get royalty fee
     const fee = await contract.royaltyFee();
     const price = ethers.utils.parseEther(resellPrice.toString());
@@ -168,6 +169,4 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
       )}
     </div>
   );
-};
-
-export default Tokens;
+}

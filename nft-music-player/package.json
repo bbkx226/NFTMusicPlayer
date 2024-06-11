@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "deploy": "npx hardhat run src/contracts/scripts/deploy.js --network localhost",
+    "deploy": "npx hardhat run contracts/scripts/deploy.js --network localhost",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
