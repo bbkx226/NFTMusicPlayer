@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, FC } from "react";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
+import Image from "next/image";
 
 interface TokensProps {
   contract: ethers.Contract;
@@ -13,6 +14,14 @@ interface Item {
   audio: string;
   identicon: string;
   resellPrice: null | string;
+}
+
+interface TokenProps {
+  args: {
+    price: ethers.BigNumber;
+    tokenId: number;
+  };
+  tokenId: number;
 }
 
 const Tokens: FC<TokensProps> = ({ contract }) => {
@@ -29,7 +38,7 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
     // Get all unsold items/tokens
     const results = await contract.getMyTokens();
     const myTokens = await Promise.all(
-      results.map(async (i: { args: any; tokenId: any }) => {
+      results.map(async (i: TokenProps) => {
         const args = i.args;
         if (!args) {
           return;
@@ -74,9 +83,7 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
   });
 
   useEffect(() => {
-    if (myTokens && myTokens.length === 0) {
-      loadMyTokens();
-    }
+    !myTokens && loadMyTokens();
   });
 
   if (loading)
@@ -101,9 +108,26 @@ const Tokens: FC<TokensProps> = ({ contract }) => {
                   }}
                 ></audio>
                 <div className="card">
-                  <img className="w-full" src={item.identicon} />
+                  <Image width={120} height={120} alt="" className="w-full" src={item.identicon} />
                   <div className="px-6 py-4">
                     <div className="font-bold text-xl mb-2">{item.name}</div>
+                    <div className="d-grid px-4">
+                      <button className="btn btn-secondary" onClick={() => {
+                        setPrevious(selected)
+                        setSelected(idx)
+                        if (!isPlaying || idx === selected) setIsPlaying(!isPlaying)
+                      }}>
+                        {isPlaying && selected === idx ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor" className="bi bi-pause" viewBox="0 0 16 16">
+                            <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="currentColor" className="bi bi-play" viewBox="0 0 16 16">
+                            <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                     <p className="text-gray-700 text-base">{ethers.utils.formatEther(item.price)} ETH</p>
                   </div>
                   <div className="px-6 pt-4 pb-2">
