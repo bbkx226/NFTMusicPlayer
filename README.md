@@ -4,29 +4,84 @@ This is a Next.js blockchain project for MusicBox. Follow the steps below to run
 
 ## Table of Contents
 
+- [Collaborating on GitHub](#collaborating-on-github)
 - [Run the Project](#run-the-project)
 - [Setting Up MetaMask for Hardhat](#setting-up-metamask-for-hardhat)
 - [Testing](#testing)
 - [Handling Errors](#handling-errors)
 - [Formatting and Linting](#formatting-and-linting)
 
+## Collaborating on GitHub
+
+To collaborate on this project, you need to set up your local repository and connect it to the remote repository on GitHub. Follow these steps:
+
+1. Initialize a new Git repository:
+
+```bash
+git init
+```
+
+2. Create a new branch for your work (replace `bbkx` with your preferred branch name):
+
+```bash
+git branch -M bbkx
+```
+
+3. Add the remote repository (replace the URL with the actual URL of the repository):
+
+```bash
+git remote add origin https://github.com/bbkx226/dcoms.git
+```
+
+4. Pull the latest changes from the main branch of the remote repository:
+
+```bash
+git pull origin main
+```
+
+5. Add your changes to the staging area:
+
+```bash
+git add .
+```
+
+6. Commit your changes (replace "Initial Commit" with your actual commit message):
+
+```bash
+git commit -m "Initial Commit"
+```
+
+7. Push your changes to your branch on the remote repository:
+
+```bash
+git push origin bbkx
+```
+
+Remember to replace `bbkx` with your actual branch name. Now, you're ready to collaborate on this project!
+
 ## Run the Project
 
-1. Navigate to the root directory of the project.
+1. Install the necessary dependencies:
 
-2. Start the development server by running:
+```bash
+npm i
+```
+
+2. Navigate to the root directory of the project.
+
+3. Start the development server by running:
 
 ```bash
 npm run dev
 ```
 
-3. In a new terminal, start a local Ethereum network by running:
+4. In a new terminal, start a local Ethereum network by running:
 
 ```bash
 npx hardhat node
 ```
 
-4. Deploy your contracts to the local Ethereum network by running:
+5. Deploy your contracts to the local Ethereum network by running:
 
 ```bash
 npm run deploy
