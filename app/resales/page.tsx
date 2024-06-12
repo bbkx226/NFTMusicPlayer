@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useBlockchain } from "../layout";
 
-interface Item {
+interface ResaleItem {
   audio: string;
   identicon: string;
   itemId: ethers.BigNumber;
@@ -18,73 +18,75 @@ export default function Resales() {
   const { blockchainContract, userAccount } = useBlockchain();
 
   const audioRefs = useRef<HTMLAudioElement[]>([]);
-  const [listedItems, setListedItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [soldItems, setSoldItems] = useState<Item[] | undefined>([]);
-  const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
-  const [selected, setSelected] = useState(0);
-  const [previous, setPrevious] = useState<null | number>(null);
+  const [resaleItems, setResaleItems] = useState<ResaleItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [completedSales, setCompletedSales] = useState<ResaleItem[] | undefined>([]);
+  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean | null>(null);
+  const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
+  const [previousAudioIndex, setPreviousAudioIndex] = useState<null | number>(null);
 
-  const loadMyResales = async () => {
+  const loadUserResales = async () => {
     if (blockchainContract) {
-      // Fetch resale items from marketplace by quering MarketItemRelisted events with the seller set as the user
+      // Fetch resale items from marketplace by querying MarketItemRelisted events with the seller set as the user
       let filter = blockchainContract?.filters.MarketItemRelisted(null, userAccount, null);
       let results = await blockchainContract?.queryFilter(filter);
-      // Fetch metadata of each nft and add that to item object.
-      const listedItems = await Promise.all(
+      // Fetch metadata of each NFT and add that to item object
+      const resaleItems = await Promise.all(
         results.map(async i => {
           // fetch arguments from each result
           const args = i.args;
           if (!args) {
             return;
           }
-          // get uri url from nft blockchainContract
+          // get uri url from NFT blockchainContract
           const uri = await blockchainContract?.tokenURI(args.tokenId);
-          // use uri to fetch the nft metadata stored on ipfs
+          // use uri to fetch the NFT metadata stored on IPFS
           const response = await fetch(uri + ".json");
           const metadata = await response.json();
           const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
           // define listed item object
-          const purchasedItem: Item = {
+          const resaleItem: ResaleItem = {
             audio: metadata?.audio ?? "",
             identicon,
             itemId: args?.tokenId ?? 0,
             name: metadata?.name ?? "",
             price: args?.price ?? 0
           };
-          return purchasedItem;
+          return resaleItem;
         })
       );
-      setListedItems(listedItems.filter(item => item !== undefined) as Item[]);
-      // Fetch sold resale items by quering MarketItemBought events with the seller set as the user.
-      filter = blockchainContract.filters.MarketItemBought(null, userAccount, null, null);
+      setResaleItems(resaleItems.filter(item => item !== undefined) as ResaleItem[]);
+      // Fetch sold resale items by querying MarketItemPurchased events with the seller set as the user
+      filter = blockchainContract.filters.MarketItemPurchased(null, userAccount, null, null);
       results = await blockchainContract.queryFilter(filter);
-      // Filter out the sold items from the listedItems
-      const soldItems = listedItems.filter(i =>
+      // Filter out the sold items from the resaleItems
+      const completedSales = resaleItems.filter(i =>
         results?.some(j => j.args && i && i.itemId.toString() === j.args.tokenId.toString())
       );
-      setSoldItems(soldItems.filter(item => item !== undefined) as Item[]);
-      setLoading(false);
+      setCompletedSales(completedSales.filter(item => item !== undefined) as ResaleItem[]);
+      setIsLoading(false);
     }
   };
 
+  // Effect to handle audio play/pause
   useEffect(() => {
-    if (isPlaying) {
-      audioRefs.current[selected].play();
-      if (selected !== previous && previous) audioRefs.current[previous].pause();
-    } else if (isPlaying !== null) {
-      audioRefs.current[selected].pause();
+    if (isAudioPlaying) {
+      audioRefs.current[currentAudioIndex].play();
+      if (currentAudioIndex !== previousAudioIndex && previousAudioIndex !== null)
+        audioRefs.current[previousAudioIndex].pause();
+    } else if (isAudioPlaying !== null) {
+      audioRefs.current[currentAudioIndex].pause();
+    }
+  }, [isAudioPlaying, currentAudioIndex, previousAudioIndex]);
+
+  // Effect to load user's resale items
+  useEffect(() => {
+    if (resaleItems && resaleItems.length === 0) {
+      loadUserResales();
     }
   });
 
-  useEffect(() => {
-    if (listedItems && listedItems.length === 0) {
-      loadMyResales();
-    }
-  });
-
-  // Rest of the code remains the same
-  if (loading)
+  if (isLoading)
     return (
       <main style={{ padding: "1rem 0" }}>
         <h2>Loading...</h2>
@@ -94,11 +96,11 @@ export default function Resales() {
   return (
     <div className="flex justify-center">
       <div className="flex justify-center">
-        {listedItems && listedItems.length > 0 ? (
+        {resaleItems && resaleItems.length > 0 ? (
           <div className="px-5 py-3 container">
             <h2 className="text-2xl font-bold">Listed</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3">
-              {listedItems.map((item, idx) => (
+              {resaleItems.map((item, idx) => (
                 <div className="overflow-hidden rounded-lg shadow-lg" key={idx}>
                   <audio
                     ref={el => {
@@ -116,12 +118,12 @@ export default function Resales() {
                       <button
                         className="w-full px-4 py-2 text-white bg-gray-800 rounded-md"
                         onClick={() => {
-                          setPrevious(selected);
-                          setSelected(idx);
-                          if (!isPlaying || idx === selected) setIsPlaying(!isPlaying);
+                          setPreviousAudioIndex(currentAudioIndex);
+                          setCurrentAudioIndex(idx);
+                          if (!isAudioPlaying || idx === currentAudioIndex) setIsAudioPlaying(!isAudioPlaying);
                         }}
                       >
-                        {isPlaying && selected === idx ? "Pause" : "Play"}
+                        {isAudioPlaying && currentAudioIndex === idx ? "Pause" : "Play"}
                       </button>
                     </div>
                     <p className="mt-2">{ethers.utils.formatEther(item.price)} ETH</p>
@@ -131,9 +133,9 @@ export default function Resales() {
             </div>
             <>
               <h2>Sold</h2>
-              {soldItems && soldItems.length > 0 ? (
+              {completedSales && completedSales.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3">
-                  {soldItems.map((item, idx) => (
+                  {completedSales.map((item, idx) => (
                     <div className="overflow-hidden" key={idx}>
                       <div className="bg-white rounded-lg shadow-md">
                         <Image

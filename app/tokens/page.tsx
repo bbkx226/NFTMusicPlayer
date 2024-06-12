@@ -6,79 +6,92 @@ import { useEffect, useRef, useState } from "react";
 
 import { useBlockchain } from "../layout";
 
-interface Item {
+interface TokenItem {
   audio: string;
   identicon: string;
-  itemId: number;
+  itemId: ethers.BigNumber;
   name: string;
   price: ethers.BigNumber;
   resellPrice: null | string;
 }
 
+interface ResultItem {
+  nftPrice: ethers.BigNumber;
+  nftSeller: string;
+  nftTokenId: ethers.BigNumber;
+}
+
 export default function Tokens() {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
-  const [isPlaying, setIsPlaying] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [myTokens, setMyTokens] = useState<Item[] | null>(null);
-  const [selected, setSelected] = useState<number>(0);
-  const [previous, setPrevious] = useState<null | number>(null);
-  const [resellId, setResellId] = useState<null | number>(null);
-  const [resellPrice, setResellPrice] = useState<number | readonly string[] | string | undefined>(undefined);
+  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userTokens, setUserTokens] = useState<TokenItem[] | null>(null);
+  const [currentTokenIndex, setCurrentTokenIndex] = useState<number>(0);
+  const [previousTokenIndex, setPreviousTokenIndex] = useState<null | number>(null);
+  const [resellNFTId, setresellNFTId] = useState<ethers.BigNumber | null>(null);
+  const [resellNFTPrice, setresellNFTPrice] = useState<number | readonly string[] | string | undefined>(undefined);
 
-  const { contract } = useBlockchain();
+  const { blockchainContract } = useBlockchain();
 
-  const loadMyTokens = async () => {
-    if (contract) {
+  // Function to load user's tokens
+  const loadUserTokens = async () => {
+    if (blockchainContract) {
       // Get all unsold items/tokens
-      const results = await contract.getMyTokens();
-      const myTokens = await Promise.all(
-        results.map(async i => {
-          // get uri url from contract
-          const uri = await contract.tokenURI(i.tokenId);
+      const results = await blockchainContract.fetchUserNFTs();
+      const userTokens = await Promise.all(
+        results.map(async (i: ResultItem) => {
+          // get uri url from blockchainContract
+          const uri = await blockchainContract.tokenURI(i.nftTokenId);
           // use uri to fetch the nft metadata stored on ipfs
           const response = await fetch(uri + ".json");
           const metadata = await response.json();
           const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
           // define item object
-          const item = {
+          const tokenItem: TokenItem = {
             audio: metadata.audio,
             identicon,
-            itemId: i.tokenId,
+            itemId: i.nftTokenId,
             name: metadata.name,
-            price: i.price,
+            price: i.nftPrice,
             resellPrice: null
           };
-          return item;
+          return tokenItem;
         })
       );
-      setMyTokens(myTokens);
-      setLoading(false);
+      setUserTokens(userTokens);
+      setIsLoading(false);
     }
   };
 
-  const resellItem = async (item: Item) => {
-    if (resellPrice === "0" || item.itemId !== resellId || !resellPrice || !contract) return;
+  // Function to resell a token
+  const resellNFT = async (tokenItem: TokenItem) => {
+    if (resellNFTPrice === "0" || tokenItem.itemId !== resellNFTId || !resellNFTPrice || !blockchainContract) return;
     // Get royalty fee
-    const fee = await contract.royaltyFee();
-    const price = ethers.utils.parseEther(resellPrice.toString());
-    await (await contract.resellToken(item.itemId, price, { value: fee })).wait();
-    loadMyTokens();
+    const fee = await blockchainContract.royaltyFee();
+    const price = ethers.utils.parseEther(resellNFTPrice.toString());
+    await (await blockchainContract.resellNFT(tokenItem.itemId, price, { value: fee })).wait();
+    loadUserTokens();
   };
 
+  // Effect to handle audio play/pause
   useEffect(() => {
-    if (isPlaying) {
-      audioRefs.current[selected].play();
-      if (selected !== previous && previous) audioRefs.current[previous].pause();
-    } else if (isPlaying !== null) {
-      audioRefs.current[selected].pause();
+    if (isAudioPlaying) {
+      audioRefs.current[currentTokenIndex].play();
+      if (currentTokenIndex !== previousTokenIndex && previousTokenIndex !== null)
+        audioRefs.current[previousTokenIndex].pause();
+    } else if (isAudioPlaying !== null) {
+      audioRefs.current[currentTokenIndex].pause();
+    }
+  }, [isAudioPlaying, currentTokenIndex, previousTokenIndex]);
+
+  // Effect to load user's tokens
+  useEffect(() => {
+    if (!userTokens) {
+      loadUserTokens();
     }
   });
 
-  useEffect(() => {
-    !myTokens && loadMyTokens();
-  });
-
-  if (loading)
+  if (isLoading)
     return (
       <main style={{ padding: "1rem 0" }}>
         <h2>Loading...</h2>
@@ -87,10 +100,10 @@ export default function Tokens() {
 
   return (
     <div className="flex justify-center">
-      {myTokens && myTokens.length > 0 ? (
+      {userTokens && userTokens.length > 0 ? (
         <div className="px-5 container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-5">
-            {myTokens.map((item, idx) => (
+            {userTokens.map((item, idx) => (
               <div className="overflow-hidden" key={idx}>
                 <audio
                   key={idx}
@@ -107,12 +120,12 @@ export default function Tokens() {
                       <button
                         className="btn btn-secondary"
                         onClick={() => {
-                          setPrevious(selected);
-                          setSelected(idx);
-                          if (!isPlaying || idx === selected) setIsPlaying(!isPlaying);
+                          setPreviousTokenIndex(currentTokenIndex);
+                          setCurrentTokenIndex(idx);
+                          if (!isAudioPlaying || idx === currentTokenIndex) setIsAudioPlaying(!isAudioPlaying);
                         }}
                       >
-                        {isPlaying && selected === idx ? (
+                        {isAudioPlaying && currentTokenIndex === idx ? (
                           <svg
                             className="bi bi-pause"
                             fill="currentColor"
@@ -142,20 +155,20 @@ export default function Tokens() {
                   <div className="px-6 pt-4 pb-2">
                     <button
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                      onClick={() => resellItem(item)}
+                      onClick={() => resellNFT(item)}
                     >
                       Resell
                     </button>
                     <input
                       className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       onChange={e => {
-                        setResellId(item.itemId);
-                        setResellPrice(e.target.value);
+                        setresellNFTId(item.itemId);
+                        setresellNFTPrice(e.target.value);
                       }}
                       placeholder="Price in ETH"
                       required
                       type="number"
-                      value={resellId === item.itemId ? resellPrice : ""}
+                      value={resellNFTId === item.itemId ? resellNFTPrice : ""}
                     />
                   </div>
                 </div>

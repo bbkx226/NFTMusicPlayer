@@ -1,5 +1,4 @@
-// Use the client-side rendering mode
-"use client";
+"use client"; // Directive indicating that this is a client-side module in Next.js
 
 import { ethers } from "ethers";
 import Image from "next/image";

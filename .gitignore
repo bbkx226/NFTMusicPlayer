@@ -62,4 +62,4 @@ docker-compose.yml
 # Log files
 *.log
 
-/src/abi/*.json
+/abi/*.json

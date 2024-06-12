@@ -1,26 +1,11 @@
-async function main() {
-  const toWei = num => ethers.utils.parseEther(num.toString());
-  let royaltyFee = toWei(0.01);
-  let prices = [toWei(1), toWei(2), toWei(3), toWei(4), toWei(5), toWei(6), toWei(7), toWei(8)];
-  let deploymentFees = toWei(prices.length * 0.01);
-  const [deployer, artist] = await ethers.getSigners();
+const fs = require("fs");
+const path = require("path");
 
-  console.log("Deploying contracts with the account:", deployer.address);
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+// Convert a number to Wei
+const toWei = num => ethers.utils.parseEther(num.toString());
 
-  // deploy contracts here:
-  const NFTMusicPlayerFactory = await ethers.getContractFactory("NFTMusicPlayer");
-  NFTMusicPlayer = await NFTMusicPlayerFactory.deploy(royaltyFee, artist.address, prices, { value: deploymentFees });
-
-  console.log("Smart contract address:", NFTMusicPlayer.address);
-
-  // For each contract, pass the deployed contract and name to this function to save a copy of the contract ABI and address to the front end.
-  saveFrontendFiles(NFTMusicPlayer, "NFTMusicPlayer");
-}
-
-function saveFrontendFiles(contract, name) {
-  const fs = require("fs");
-  const path = require("path");
+// Save contract details to a file
+function saveContractToFile(contract, name) {
   const contractsDir = path.resolve(__dirname, "../../abi");
 
   if (!fs.existsSync(contractsDir)) {
@@ -35,6 +20,27 @@ function saveFrontendFiles(contract, name) {
   const contractArtifact = artifacts.readArtifactSync(name);
 
   fs.writeFileSync(path.join(contractsDir, `${name}.json`), JSON.stringify(contractArtifact, null, 2));
+}
+
+async function main() {
+  let royaltyFee = toWei(0.01);
+  let prices = Array.from({ length: 8 }, (_, i) => toWei(i + 1));
+  let deploymentFees = toWei(prices.length * 0.01);
+  const [deployer, artist] = await ethers.getSigners();
+
+  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Account balance:", (await deployer.getBalance()).toString());
+
+  // deploy contracts here:
+  const NFTMusicPlayerFactory = await ethers.getContractFactory("NFTMusicPlayer");
+  const NFTMusicPlayer = await NFTMusicPlayerFactory.deploy(royaltyFee, artist.address, prices, {
+    value: deploymentFees
+  });
+
+  console.log("Smart contract address:", NFTMusicPlayer.address);
+
+  // Save the contract details to a file
+  saveContractToFile(NFTMusicPlayer, "NFTMusicPlayer");
 }
 
 main()

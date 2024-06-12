@@ -1,4 +1,5 @@
-"use client";
+"use client"; // Directive indicating that this is a client-side module in Next.js
+
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
@@ -6,12 +7,13 @@ import { useEffect, useRef, useState } from "react";
 
 import { useBlockchain } from "./layout";
 
-interface Token {
-  price: ethers.BigNumber;
-  tokenId: ethers.BigNumber;
+// Define TypeScript interfaces for token and item data structures
+interface IToken {
+  nftPrice: ethers.BigNumber;
+  nftTokenId: ethers.BigNumber;
 }
 
-interface Item {
+interface IItem {
   audio: string;
   identicon: string;
   itemId: ethers.BigNumber;
@@ -21,85 +23,89 @@ interface Item {
 
 // NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
 export default function Home() {
-  const { blockchainContract } = useBlockchain();
+  const { blockchainContract } = useBlockchain(); // Destructure blockchainContract from useBlockchain hook
 
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
-  const [marketItems, setMarketItems] = useState<Item[]>([]);
+  const audioElement = useRef<HTMLAudioElement>(null); // Create a ref for the audio element
+  const [isLoading, setIsLoading] = useState(true); // State for loading status
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false); // State for audio play status
+  const [currentAudioIndex, setCurrentAudioIndex] = useState(0); // State for the current audio index
+  const [marketItems, setMarketItems] = useState<IItem[]>([]); // State for marketplace items
 
-  const loadMarketplaceItems = async () => {
-    const results: Token[] = await (blockchainContract && blockchainContract.getAllUnsoldTokens());
-    const marketItems: Item[] = await Promise.all(
-      results.map(async (i: Token) => {
+  // Function to load marketplace items
+  const fetchMarketItems = async () => {
+    const tokens: IToken[] = await (blockchainContract && blockchainContract.fetchUnsoldNFTs()); // Fetch unsold tokens from the blockchain
+    const fetchedItems: IItem[] = await Promise.all(
+      tokens.map(async (token: IToken) => {
         const uri =
           blockchainContract !== null && blockchainContract !== undefined
-            ? await blockchainContract.tokenURI(i.tokenId)
+            ? await blockchainContract.tokenURI(token.nftTokenId) // Fetch token URI
             : null;
-        const response = await fetch(uri + ".json");
-        const metadata = await response.json();
-        const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
-        const item: Item = {
+        const response = await fetch(uri + ".json"); // Fetch metadata JSON from the URI
+        const metadata = await response.json(); // Parse the JSON response
+        const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`; // Generate identicon based on metadata
+        const item: IItem = {
           audio: metadata.audio,
           identicon,
-          itemId: i.tokenId,
+          itemId: token.nftTokenId,
           name: metadata.name,
-          price: i.price
+          price: token.nftPrice
         };
         return item;
       })
     );
-    setMarketItems(marketItems);
-    setLoading(false);
+    setMarketItems(fetchedItems);
+    setIsLoading(false);
   };
 
-  const buyMarketItem = async (item: Item) => {
+  // Function to buy a marketplace item
+  const purchaseItem = async (item: IItem) => {
     if (blockchainContract) {
-      await (await blockchainContract.buyToken(item.itemId, { value: item.price })).wait();
-      loadMarketplaceItems();
+      await (await blockchainContract.purchaseNFT(item.itemId, { value: item.price })).wait(); // Call purchaseNFT function on the blockchain and wait for the transaction to complete
+      fetchMarketItems(); // Refresh market items after purchase
     }
   };
 
-  const skipSong = (forwards: boolean) => {
-    if (forwards) {
-      setCurrentItemIndex(() => {
-        let index = currentItemIndex;
-        index++;
-        if (index > marketItems.length - 1) {
-          index = 0;
+  // Function to skip to the next or previous song
+  const changeSong = (isNext: boolean) => {
+    if (isNext) {
+      setCurrentAudioIndex(prevIndex => {
+        let newIndex = prevIndex + 1;
+        if (newIndex > marketItems.length - 1) {
+          newIndex = 0; // Wrap around to the first item if at the end of the list
         }
-        return index;
+        return newIndex;
       });
     } else {
-      setCurrentItemIndex(() => {
-        let index = currentItemIndex;
-        index--;
-        if (index < 0) {
-          index = marketItems.length - 1;
+      setCurrentAudioIndex(prevIndex => {
+        let newIndex = prevIndex - 1;
+        if (newIndex < 0) {
+          newIndex = marketItems.length - 1; // Wrap around to the last item if at the beginning of the list
         }
-        return index;
+        return newIndex;
       });
     }
   };
 
+  // Effect to handle audio play/pause based on isAudioPlaying state
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play();
-      } else if (isPlaying !== null) {
-        audioRef.current.pause();
+    if (audioElement.current) {
+      if (isAudioPlaying) {
+        audioElement.current.play(); // Play audio if isAudioPlaying is true
+      } else if (isAudioPlaying !== null) {
+        audioElement.current.pause(); // Pause audio if isAudioPlaying is false
       }
     }
-  });
+  }, [isAudioPlaying]);
 
+  // Effect to load marketplace items on component mount
   useEffect(() => {
     if (marketItems.length === 0) {
-      loadMarketplaceItems();
+      fetchMarketItems(); // Fetch market items if the list is empty
     }
   });
 
-  if (loading)
+  // Render loading message if still loading
+  if (isLoading)
     return (
       <main className="p-4">
         <h2>Loading...</h2>
@@ -112,23 +118,23 @@ export default function Home() {
         <div className="row">
           <main className="mx-auto" role="main" style={{ maxWidth: "500px" }}>
             <div className="content mx-auto">
-              <audio ref={audioRef} src={marketItems[currentItemIndex].audio}></audio>
+              <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio>
               <div className="card">
                 <div className="card-header">
-                  {currentItemIndex + 1} of {marketItems.length}
+                  {currentAudioIndex + 1} of {marketItems.length}
                 </div>
                 <Image
                   alt=""
                   className="card-img-top"
                   height={120}
-                  src={marketItems[currentItemIndex].identicon}
+                  src={marketItems[currentAudioIndex].identicon}
                   width={120}
                 />
                 <div className="card-body text-secondary">
-                  <h2 className="card-title">{marketItems[currentItemIndex].name}</h2>
+                  <h2 className="card-title">{marketItems[currentAudioIndex].name}</h2>
                   <div className="d-grid px-4">
                     <div aria-label="Basic example" className="btn-group" role="group">
-                      <button className="btn btn-secondary" onClick={() => skipSong(false)}>
+                      <button className="btn btn-secondary" onClick={() => changeSong(false)}>
                         <svg
                           className="bi bi-skip-backward"
                           fill="currentColor"
@@ -140,8 +146,8 @@ export default function Home() {
                           <path d="M.5 3.5A.5.5 0 0 1 1 4v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v2.94l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L8.5 8.752v2.94c0 .653-.713.998-1.233.696L1 8.752V12a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm7 1.133L1.696 8 7.5 11.367V4.633zm7.5 0L9.196 8 15 11.367V4.633z" />
                         </svg>
                       </button>
-                      <button className="btn btn-secondary" onClick={() => setIsPlaying(!isPlaying)}>
-                        {isPlaying ? (
+                      <button className="btn btn-secondary" onClick={() => setIsAudioPlaying(!isAudioPlaying)}>
+                        {isAudioPlaying ? (
                           <svg
                             className="bi bi-pause"
                             fill="currentColor"
@@ -165,7 +171,7 @@ export default function Home() {
                           </svg>
                         )}
                       </button>
-                      <button className="btn btn-secondary" onClick={() => skipSong(true)}>
+                      <button className="btn btn-secondary" onClick={() => changeSong(true)}>
                         <svg
                           className="bi bi-skip-forward"
                           fill="currentColor"
@@ -184,9 +190,9 @@ export default function Home() {
                   <div className="d-grid my-1">
                     <button
                       className="btn btn-primary btn-lg"
-                      onClick={() => buyMarketItem(marketItems[currentItemIndex])}
+                      onClick={() => purchaseItem(marketItems[currentAudioIndex])}
                     >
-                      {`Buy for ${ethers.utils.formatEther(marketItems[currentItemIndex].price)} ETH`}
+                      {`Buy for ${ethers.utils.formatEther(marketItems[currentAudioIndex].price)} ETH`}
                     </button>
                   </div>
                 </div>
