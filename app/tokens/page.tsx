@@ -67,7 +67,7 @@ export default function Tokens() {
   const resellNFT = async (tokenItem: TokenItem) => {
     if (resellNFTPrice === "0" || tokenItem.itemId !== resellNFTId || !resellNFTPrice || !blockchainContract) return;
     // Get royalty fee
-    const fee = await blockchainContract.royaltyFee();
+    const fee = await blockchainContract.royaltyFeePercentage();
     const price = ethers.utils.parseEther(resellNFTPrice.toString());
     await (await blockchainContract.resellNFT(tokenItem.itemId, price, { value: fee })).wait();
     loadUserTokens();

@@ -39,7 +39,7 @@ export default function Resales() {
             return;
           }
           // get uri url from NFT blockchainContract
-          const uri = await blockchainContract?.tokenURI(args.tokenId);
+          const uri = await blockchainContract?.tokenURI(args.nftTokenId);
           // use uri to fetch the NFT metadata stored on IPFS
           const response = await fetch(uri + ".json");
           const metadata = await response.json();
@@ -48,9 +48,9 @@ export default function Resales() {
           const resaleItem: ResaleItem = {
             audio: metadata?.audio ?? "",
             identicon,
-            itemId: args?.tokenId ?? 0,
+            itemId: args?.nftTokenId ?? 0,
             name: metadata?.name ?? "",
-            price: args?.price ?? 0
+            price: args?.nftPrice ?? 0
           };
           return resaleItem;
         })
@@ -61,7 +61,7 @@ export default function Resales() {
       results = await blockchainContract.queryFilter(filter);
       // Filter out the sold items from the resaleItems
       const completedSales = resaleItems.filter(i =>
-        results?.some(j => j.args && i && i.itemId.toString() === j.args.tokenId.toString())
+        results?.some(j => j.args && i && i.itemId.toString() === j.args.nftTokenId.toString())
       );
       setCompletedSales(completedSales.filter(item => item !== undefined) as ResaleItem[]);
       setIsLoading(false);
