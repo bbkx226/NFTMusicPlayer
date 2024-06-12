@@ -63,3 +63,4 @@ docker-compose.yml
 *.log
 
 /abi/*.json
+/musics
