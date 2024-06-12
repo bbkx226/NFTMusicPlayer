@@ -19,8 +19,9 @@ interface Item {
   price: ethers.BigNumber;
 }
 
+// NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
 export default function Home() {
-  const { contract } = useBlockchain();
+  const { blockchainContract } = useBlockchain();
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const [loading, setLoading] = useState(true);
@@ -29,10 +30,13 @@ export default function Home() {
   const [marketItems, setMarketItems] = useState<Item[]>([]);
 
   const loadMarketplaceItems = async () => {
-    const results: Token[] = await (contract && contract.getAllUnsoldTokens());
+    const results: Token[] = await (blockchainContract && blockchainContract.getAllUnsoldTokens());
     const marketItems: Item[] = await Promise.all(
       results.map(async (i: Token) => {
-        const uri = contract !== null && contract !== undefined ? await contract.tokenURI(i.tokenId) : null;
+        const uri =
+          blockchainContract !== null && blockchainContract !== undefined
+            ? await blockchainContract.tokenURI(i.tokenId)
+            : null;
         const response = await fetch(uri + ".json");
         const metadata = await response.json();
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
@@ -51,8 +55,8 @@ export default function Home() {
   };
 
   const buyMarketItem = async (item: Item) => {
-    if (contract) {
-      await (await contract.buyToken(item.itemId, { value: item.price })).wait();
+    if (blockchainContract) {
+      await (await blockchainContract.buyToken(item.itemId, { value: item.price })).wait();
       loadMarketplaceItems();
     }
   };

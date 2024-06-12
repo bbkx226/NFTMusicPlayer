@@ -20,17 +20,23 @@ declare global {
 
 // Define the shape of the context
 interface ContextProps {
-  account: null | string; // Ethereum account address
-  contract: ethers.Contract; // Ethereum contract instance
+  blockchainContract: ethers.Contract; // Ethereum contract instance
   handleWeb3Connection: () => Promise<void>; // Function to handle connection to the Ethereum network
-  loading: boolean; // Loading state
+  isLoading: boolean; // Loading state
+  userAccount: null | string; // Ethereum account address
 }
 
-// Create the context with a default value
-const BlockchainContext = createContext<Partial<ContextProps>>({});
+// NOTE:
+// The createContext function creates a context object in React. This context object has two properties: "Provider" and "Consumer".
+// The "Provider" component is used to wrap a part of your component tree, making the context value available to all components within that subtree.
+/// The "Consumer" component allows components to consume the context value.
+const BlockchainContext = createContext<Partial<ContextProps>>({}); // Create the context with a default value
 
-// Create a custom hook to use the context
-export const useBlockchain = () => useContext(BlockchainContext);
+// NOTE:
+// useContext is a React Hook that allows you to read and subscribe to context from your component.
+// You call useContext(SomeContext) to get the context value.
+// React automatically re-renders components that use context when it changes.
+export const useBlockchain = () => useContext(BlockchainContext); // Create a custom hook to use the context
 
 // Create a dummy contract as a placeholder before the real contract is loaded
 const dummyContract = new ethers.Contract(
@@ -39,18 +45,18 @@ const dummyContract = new ethers.Contract(
   ethers.getDefaultProvider() // This gets the default Ethereum provider. It's used to interact with the Ethereum network.
 );
 
-// Define the root layout component
+// NOTE: In Next.js 14, a root layout is a UI component shared between multiple pages in an application. It allows you to define a common structure and appearance for a group of pages, reducing redundancy and promoting code reusability. The root layout is mandatory for every Next.js app and is often referred to as the “RootLayout.”
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Define state variables
-  const [loading, setLoading] = useState(true); // Loading state
-  const [account, setAccount] = useState<null | string>(null); // Ethereum account address
-  const [contract, setContract] = useState(dummyContract); // Ethereum contract instance
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Loading state
+  const [userAccount, setUserAccount] = useState<null | string>(null); // Ethereum account address
+  const [blockchainContract, setBlockchainContract] = useState<ethers.Contract>(dummyContract); // Ethereum contract instance
 
   // Define a function to handle connection to the Ethereum network
   const handleWeb3Connection = async () => {
     if (window.ethereum.request) {
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" }); // Request access to the user's Ethereum accounts
-      setAccount(accounts[0]); // Set the first account as the current account
+      setUserAccount(accounts[0]); // Set the first account as the current account
       const provider = new ethers.providers.Web3Provider(window.ethereum); // Create a new Ethereum provider
       const signer = provider.getSigner(); // Get the signer from the provider
       loadBlockchainContract(signer); // Load the contract
@@ -60,8 +66,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Define a function to load the contract
   const loadBlockchainContract = async (signer: ethers.providers.JsonRpcSigner) => {
     const contract = new ethers.Contract(NFTMusicPlayerAddress.address, NFTMusicPlayerAbi.abi, signer); // Create a new contract instance
-    setContract(contract); // Set the contract
-    setLoading(false); // Set the loading state to false
+    setBlockchainContract(contract); // Set the contract
+    setIsLoading(false); // Set the loading state to false
   };
 
   // Use the useEffect hook to handle connection to the Ethereum network when the component mounts
@@ -86,14 +92,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/">Home</Link>
                 <Link href="/tokens">My Tokens</Link>
                 <Link href="/resales">My Resales</Link>
-                {account ? (
+                {userAccount ? (
                   <a
                     className="mx-4"
-                    href={`https://etherscan.io/address/${account}`}
+                    href={`https://etherscan.io/address/${userAccount}`}
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    {account.slice(0, 5) + "..." + account.slice(38, 42)}
+                    {userAccount.slice(0, 5) + "..." + userAccount.slice(38, 42)}
                   </a>
                 ) : (
                   <button className="bg-white text-black px-4 py-2 rounded" onClick={handleWeb3Connection}>
@@ -104,8 +110,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </nav>
           <div>
-            <BlockchainContext.Provider value={{ account, contract, handleWeb3Connection, loading }}>
-              {loading ? (
+            {/* NOTE: 
+              The Provider component is used to provide the context value to its child components.
+              It accepts a value prop that specifies the data you want to share.
+              The value provided by the Provider is accessible to all components that consume the context. 
+            */}
+            <BlockchainContext.Provider value={{ blockchainContract, handleWeb3Connection, isLoading, userAccount }}>
+              {isLoading ? (
                 <div className="flex justify-center items-center h-screen">
                   <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
                   <p className="mx-3 my-0">Awaiting Metamask Connection...</p>

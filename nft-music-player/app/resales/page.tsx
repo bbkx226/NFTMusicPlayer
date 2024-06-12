@@ -15,7 +15,8 @@ interface Item {
 }
 
 export default function Resales() {
-  const { account, contract } = useBlockchain();
+  const { blockchainContract, userAccount } = useBlockchain();
+
   const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [listedItems, setListedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +26,10 @@ export default function Resales() {
   const [previous, setPrevious] = useState<null | number>(null);
 
   const loadMyResales = async () => {
-    if (contract) {
+    if (blockchainContract) {
       // Fetch resale items from marketplace by quering MarketItemRelisted events with the seller set as the user
-      let filter = contract?.filters.MarketItemRelisted(null, account, null);
-      let results = await contract?.queryFilter(filter);
+      let filter = blockchainContract?.filters.MarketItemRelisted(null, userAccount, null);
+      let results = await blockchainContract?.queryFilter(filter);
       // Fetch metadata of each nft and add that to item object.
       const listedItems = await Promise.all(
         results.map(async i => {
@@ -37,8 +38,8 @@ export default function Resales() {
           if (!args) {
             return;
           }
-          // get uri url from nft contract
-          const uri = await contract?.tokenURI(args.tokenId);
+          // get uri url from nft blockchainContract
+          const uri = await blockchainContract?.tokenURI(args.tokenId);
           // use uri to fetch the nft metadata stored on ipfs
           const response = await fetch(uri + ".json");
           const metadata = await response.json();
@@ -56,8 +57,8 @@ export default function Resales() {
       );
       setListedItems(listedItems.filter(item => item !== undefined) as Item[]);
       // Fetch sold resale items by quering MarketItemBought events with the seller set as the user.
-      filter = contract.filters.MarketItemBought(null, account, null, null);
-      results = await contract.queryFilter(filter);
+      filter = blockchainContract.filters.MarketItemBought(null, userAccount, null, null);
+      results = await blockchainContract.queryFilter(filter);
       // Filter out the sold items from the listedItems
       const soldItems = listedItems.filter(i =>
         results?.some(j => j.args && i && i.itemId.toString() === j.args.tokenId.toString())
