@@ -30,7 +30,7 @@ git branch -M bbkx
 3. Add the remote repository (replace the URL with the actual URL of the repository):
 
 ```bash
-git remote add origin https://github.com/bbkx226/dcoms.git
+git remote add origin https://github.com/bbkx226/NFTMusicPlayer.git
 ```
 
 4. Pull the latest changes from the main branch of the remote repository:
