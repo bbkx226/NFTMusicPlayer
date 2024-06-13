@@ -77,36 +77,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Render the component
   return (
     <html lang="en">
-      <body suppressHydrationWarning={true}>
+      <body className="dark" suppressHydrationWarning={true}>
         <div className="text-center">
           <Header handleWeb3Connection={handleWeb3Connection} userAccount={userAccount} />
-          {/* <nav className="bg-secondary text-white p-4">
-            <div className="container mx-auto flex justify-between items-center">
-              <Link className="flex items-center" href="/">
-                <Image alt="Logo" height={40} src={logo} width={40} />
-                <span className="ml-2">Music NFT player</span>
-              </Link>
-              <div className="flex items-center">
-                <Link href="/">Home</Link>
-                <Link href="/tokens">My Tokens</Link>
-                <Link href="/resales">My Resales</Link>
-                {userAccount ? (
-                  <a
-                    className="mx-4"
-                    href={`https://etherscan.io/address/${userAccount}`}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {userAccount.slice(0, 5) + "..." + userAccount.slice(38, 42)}
-                  </a>
-                ) : (
-                  <button className="bg-white text-black px-4 py-2 rounded" onClick={handleWeb3Connection}>
-                    Connect Wallet
-                  </button>
-                )}
-              </div>
-            </div>
-          </nav> */}
           <div>
             {/* NOTE: 
               The Provider component is used to provide the context value to its child components.
