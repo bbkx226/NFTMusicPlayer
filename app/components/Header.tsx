@@ -48,14 +48,12 @@ const Header: React.FC<HeaderProps> = ({ handleWeb3Connection, userAccount }) =>
               </Link>
             </NavigationMenuItem>
             {userAccount ? (
-              <a
-                className="mx-4"
-                href={`https://etherscan.io/address/${userAccount}`}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {userAccount.slice(0, 5) + "..." + userAccount.slice(38, 42)}
-              </a>
+              <Button asChild variant="link">
+                <Link href={`https://etherscan.io/address/${userAccount}`} rel="noopener noreferrer" target="_blank">
+                  {/* {userAccount.slice(0, 5) + "..." + userAccount.slice(38, 42)} */}
+                  <div className="text-base">View on Etherscan</div>
+                </Link>
+              </Button>
             ) : (
               <Button onClick={handleWeb3Connection}>Connect Wallet</Button>
             )}
