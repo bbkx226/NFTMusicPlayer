@@ -1,13 +1,11 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
 import { ethers } from "ethers";
-import Image from "next/image";
-import Link from "next/link";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 import NFTMusicPlayerAbi from "../abi/NFTMusicPlayer.json";
 import NFTMusicPlayerAddress from "../abi/NFTMusicPlayer-address.json";
-import logo from "../public/logo.png";
+import Header from "./components/Header";
 import "./globals.css";
 
 // Extend the Window interface to include the ethereum object
@@ -81,7 +79,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body suppressHydrationWarning={true}>
         <div className="text-center">
-          <nav className="bg-secondary text-white p-4">
+          <Header handleWeb3Connection={handleWeb3Connection} userAccount={userAccount} />
+          {/* <nav className="bg-secondary text-white p-4">
             <div className="container mx-auto flex justify-between items-center">
               <Link className="flex items-center" href="/">
                 <Image alt="Logo" height={40} src={logo} width={40} />
@@ -107,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 )}
               </div>
             </div>
-          </nav>
+          </nav> */}
           <div>
             {/* NOTE: 
               The Provider component is used to provide the context value to its child components.
