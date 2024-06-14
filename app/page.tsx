@@ -5,6 +5,7 @@ import Identicon from "identicon.js";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
+import PlaybackBar from "./components/PlaybackBar";
 import { useBlockchain } from "./layout";
 
 // Define TypeScript interfaces for token and item data structures
@@ -199,6 +200,13 @@ export default function Home() {
               </div>
             </div>
           </main>
+          <footer>
+            <PlaybackBar
+              albumArtUrl={marketItems[currentAudioIndex].identicon}
+              artistName="DappFi"
+              trackTitle="NFT Music 1"
+            />
+          </footer>
         </div>
       ) : (
         <main className="p-4">
