@@ -8,7 +8,7 @@ describe("NFTMusicPlayer", function () {
   let nftMarketplace;
   let contractDeployer, musicArtist, buyer1, buyer2, otherUsers;
   let royaltyFeePercentage = toWei(0.01); // 1 ether = 10^18 wei
-  let baseURI = "https://bcd-music-nfts.s3.ap-southeast-1.amazonaws.com/musics/";
+  let baseURI = "https://bafybeidhjjbjonyqcahuzlpt7sznmh4xrlbspa3gstop5o47l6gsiaffee.ipfs.nftstorage.link/";
   let musicPrices = [toWei(1), toWei(2), toWei(3), toWei(4), toWei(5), toWei(6), toWei(7), toWei(8)];
   let contractDeploymentFees = toWei(musicPrices.length * 0.01);
 
