@@ -9,7 +9,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-import logo from "../public/logo.png";
+import logo from "../public/logo1.png";
 
 interface HeaderProps {
   handleWeb3Connection: () => Promise<void>;
@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ handleWeb3Connection, userAccount }) =>
       <div className="container flex justify-between items-center px-5 py-4">
         <Link className="flex items-center" href="/">
           <Image alt="Logo" height={40} src={logo} width={40} />
-          <span className="ml-2 font-bold text-2xl">TodayLand</span>
+          <span className="ml-2 font-bold text-2xl">Todayland</span>
         </Link>
         <NavigationMenu>
           <NavigationMenuList>

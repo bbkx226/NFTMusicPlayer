@@ -78,8 +78,40 @@
     background-color: rgba(17, 25, 40, 0.5);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.125);
+    position: relative;
+    overflow: hidden;
   }
 
+  .glass-header {
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    background-color: rgba(39, 50, 68, 0.5);
+    border: 1px solid rgba(58, 13, 13, 0.125);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glass-hover {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glass-hover::before {
+    content: "";
+    background: rgba(255, 255, 255, 0.4);
+    left: -130%;
+    width: 60%;
+    height: 100%;
+    top: 0%;
+    transform: skew(45deg);
+    position: absolute;
+    transition: left var(--transition-duration, 0.5s) var(--transition-easing, ease);
+  }
+  
+  .glass-hover.animate::before {
+    left: 175%;
+  }
+  
   .swiper_container {
     height: 32rem;
     padding: 2rem 0;
