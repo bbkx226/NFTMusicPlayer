@@ -207,9 +207,8 @@ export default function Resales() {
             <div className="glass w-full mt-4">
               <div className="glass-header py-4">
                 <h2 className="text-2xl font-semibold">Music Sales Insights</h2>
-                <span className="text-base font-normal">Gain insights into your NFT music sales</span>
+                <span className="text-base font-normal">- Gain insights into your NFT music sales -</span>
               </div>
-              <h2>Sold</h2>{" "}
               <Swiper
                 autoplay={{ delay: 5000 }} // Set the autoplay delay to 3000 milliseconds (3 seconds)
                 centeredSlides={true}
