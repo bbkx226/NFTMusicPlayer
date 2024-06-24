@@ -3,6 +3,12 @@ import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/scrollbar";
+import { EffectCoverflow, Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperClass, SwiperSlide } from "swiper/react";
 
 import { useBlockchain } from "../layout";
 
@@ -24,6 +30,7 @@ export default function Resales() {
   const [isAudioPlaying, setIsAudioPlaying] = useState<boolean | null>(null);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
   const [previousAudioIndex, setPreviousAudioIndex] = useState<null | number>(null);
+  const swiper = useRef<SwiperClass>(null!);
 
   const loadUserResales = async () => {
     if (blockchainContract) {
@@ -86,6 +93,29 @@ export default function Resales() {
     }
   });
 
+  const handleSlideItemClick = (index: number) => {
+    if (swiper.current !== null) {
+      swiper.current.slideTo(index);
+      // If clicked on the same slide that is currently playing
+      if (currentAudioIndex === index) {
+        const audio = audioRefs.current[index];
+        if (audio.paused) {
+          audio.play(); // Play audio if paused
+        } else {
+          audio.pause(); // Pause audio if playing
+        }
+      } else {
+        // Pause currently playing audio (if any)
+        if (currentAudioIndex !== null) {
+          audioRefs.current[currentAudioIndex].pause();
+        }
+        // Play the clicked audio
+        audioRefs.current[index].play();
+        setCurrentAudioIndex(index); // Update the current audio index
+      }
+    }
+  };
+
   if (isLoading)
     return (
       <main style={{ padding: "1rem 0" }}>
@@ -94,42 +124,68 @@ export default function Resales() {
     );
 
   return (
-    <div className="flex justify-center">
-      <div className="flex justify-center">
+    <div className="flex container justify-center">
+      <div className="flex justify-center w-full ">
         {resaleItems && resaleItems.length > 0 ? (
-          <div className="px-5 py-3 container">
-            <h2 className="text-2xl font-bold">Listed</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3">
-              {resaleItems.map((item, idx) => (
-                <div className="overflow-hidden rounded-lg shadow-lg" key={idx}>
-                  <audio
-                    ref={el => {
-                      if (el) audioRefs.current[idx] = el;
-                    }}
-                    src={item.audio}
-                  ></audio>
-                  <div
-                    className="w-full h-64 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${item.identicon})` }}
-                  ></div>
-                  <div className="p-4 bg-white">
-                    <p className="text-lg font-bold">{item.name}</p>
-                    <div className="mt-2">
-                      <button
-                        className="w-full px-4 py-2 text-white bg-gray-800 rounded-md"
-                        onClick={() => {
-                          setPreviousAudioIndex(currentAudioIndex);
-                          setCurrentAudioIndex(idx);
-                          if (!isAudioPlaying || idx === currentAudioIndex) setIsAudioPlaying(!isAudioPlaying);
-                        }}
-                      >
-                        {isAudioPlaying && currentAudioIndex === idx ? "Pause" : "Play"}
-                      </button>
+          <div className="px-5 w-full">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3"> */}
+            <div className="py-3 glass">
+              <h2 className="text-2xl font-bold">Listed</h2>
+              <Swiper
+                centeredSlides={true}
+                className="relative h-128 py-8 w-full"
+                coverflowEffect={{
+                  depth: 100,
+                  modifier: 2.5,
+                  rotate: 0,
+                  stretch: 0
+                }}
+                effect={"coverflow"}
+                grabCursor={true}
+                loop={false}
+                modules={[EffectCoverflow, Pagination, Navigation]}
+                navigation={{ nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" }}
+                onSwiper={ref => {
+                  swiper.current = ref;
+                }}
+                pagination={true}
+                slidesPerView={"auto"}
+              >
+                {resaleItems.map((item, idx) => (
+                  <SwiperSlide
+                    className="relative glass rounded-lg w-148 h-168 md:w-72 md:h-96 lg:w-92 lg:h-104"
+                    key={idx}
+                    onClick={() => handleSlideItemClick(idx)}
+                  >
+                    <audio
+                      ref={el => {
+                        if (el) audioRefs.current[idx] = el;
+                      }}
+                      src={item.audio}
+                    ></audio>
+                    <div
+                      className="w-full rounded-lg h-64 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${item.identicon})` }}
+                    ></div>
+                    <div className="p-4">
+                      <p className="text-lg font-bold">{item.name}</p>
+                      <p className="mt-2">{ethers.utils.formatEther(item.price)} ETH</p>
                     </div>
-                    <p className="mt-2">{ethers.utils.formatEther(item.price)} ETH</p>
+                  </SwiperSlide>
+                ))}
+
+                <div className="absolute top-1/2 z-10 left-0 transform -translate-y-1/2 -translate-x-full flex items-center justify-center">
+                  <div className="swiper-button-prev w-14 h-14 rounded-full shadow-lg"  >
+                    {/* <MoveLeftIcon className="text-gray-800 w-8 h-8" /> */}
                   </div>
                 </div>
-              ))}
+
+                <div className="absolute top-1/2 z-10 right-0 transform -translate-y-1/2 translate-x-full flex items-center justify-center">
+                  <div className="swiper-button-next w-14 h-14 rounded-full shadow-lg" >
+                    {/* <MoveRightIcon className="text-gray-800 w-8 h-8" /> */}
+                  </div>
+                </div>
+              </Swiper>
             </div>
             <>
               <h2>Sold</h2>
@@ -161,7 +217,14 @@ export default function Resales() {
             </>
           </div>
         ) : (
-          <main className="p-4">
+          <main className="flex flex-col justify-center items-center py-48 ">
+            <Image
+              alt="No listed assets"
+              className="w-full h-96 object-cover rounded-t-lg"
+              height={240}
+              src="/noListedAsset.png"
+              width={240}
+            />
             <h2 className="text-2xl font-bold">No listed assets</h2>
           </main>
         )}
@@ -169,3 +232,21 @@ export default function Resales() {
     </div>
   );
 }
+
+// <Swiper
+//       // install Swiper modules
+//       modules={[Navigation, Pagination, Scrollbar, A11y]}
+//       spaceBetween={50}
+//       slidesPerView={3}
+//       navigation
+//       pagination={{ clickable: true }}
+//       scrollbar={{ draggable: true }}
+//       onSwiper={(swiper) => console.log(swiper)}
+//       onSlideChange={() => console.log('slide change')}
+//     >
+//       <SwiperSlide>Slide 1</SwiperSlide>
+//       <SwiperSlide>Slide 2</SwiperSlide>
+//       <SwiperSlide>Slide 3</SwiperSlide>
+//       <SwiperSlide>Slide 4</SwiperSlide>
+//       ...
+//     </Swiper>
