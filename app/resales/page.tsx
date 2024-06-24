@@ -221,7 +221,7 @@ export default function Resales() {
                 }}
                 effect={"coverflow"}
                 grabCursor={true}
-                loop={true}
+                // loop={true}
                 modules={[EffectCoverflow, Pagination, Navigation, Autoplay]}
                 navigation={{ nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" }}
                 onSwiper={ref => {
