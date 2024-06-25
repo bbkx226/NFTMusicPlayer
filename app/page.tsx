@@ -1,11 +1,14 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { GrChapterNext, GrChapterPrevious, GrPause, GrPlay } from "react-icons/gr";
 
-import PlaybackBar from "./components/PlaybackBar";
+import PlaybackBar from "../components/PlaybackBar";
 import { useBlockchain } from "./layout";
 
 // Define TypeScript interfaces for token and item data structures
@@ -14,7 +17,7 @@ interface IToken {
   nftTokenId: ethers.BigNumber;
 }
 
-interface IItem {
+export interface IItem {
   audio: string;
   identicon: string;
   itemId: ethers.BigNumber;
@@ -87,17 +90,6 @@ export default function Home() {
     }
   };
 
-  // Effect to handle audio play/pause based on isAudioPlaying state
-  useEffect(() => {
-    if (audioElement.current) {
-      if (isAudioPlaying) {
-        audioElement.current.play(); // Play audio if isAudioPlaying is true
-      } else if (isAudioPlaying !== null) {
-        audioElement.current.pause(); // Pause audio if isAudioPlaying is false
-      }
-    }
-  }, [isAudioPlaying]);
-
   // Effect to load marketplace items on component mount
   useEffect(() => {
     if (marketItems.length === 0) {
@@ -114,105 +106,70 @@ export default function Home() {
     );
 
   return (
-    <div className="container mx-auto mt-5">
+    <div className="container mx-auto mt-10">
       {marketItems.length > 0 ? (
-        <div className="row">
-          <main className="mx-auto" role="main" style={{ maxWidth: "500px" }}>
-            <div className="content mx-auto">
-              <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio>
-              <div className="card">
-                <div className="card-header">
-                  {currentAudioIndex + 1} of {marketItems.length}
-                </div>
-                <Image
-                  alt=""
-                  className="card-img-top"
-                  height={120}
-                  src={marketItems[currentAudioIndex].identicon}
-                  width={120}
-                />
-                <div className="card-body text-secondary">
-                  <h2 className="card-title">{marketItems[currentAudioIndex].name}</h2>
-                  <div className="d-grid px-4">
-                    <div aria-label="Basic example" className="btn-group" role="group">
-                      <button className="btn btn-secondary" onClick={() => changeSong(false)}>
-                        <svg
-                          className="bi bi-skip-backward"
-                          fill="currentColor"
-                          height="32"
-                          viewBox="0 0 16 16"
-                          width="32"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M.5 3.5A.5.5 0 0 1 1 4v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v2.94l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L8.5 8.752v2.94c0 .653-.713.998-1.233.696L1 8.752V12a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm7 1.133L1.696 8 7.5 11.367V4.633zm7.5 0L9.196 8 15 11.367V4.633z" />
-                        </svg>
-                      </button>
-                      <button className="btn btn-secondary" onClick={() => setIsAudioPlaying(!isAudioPlaying)}>
-                        {isAudioPlaying ? (
-                          <svg
-                            className="bi bi-pause"
-                            fill="currentColor"
-                            height="32"
-                            viewBox="0 0 16 16"
-                            width="32"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z" />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="bi bi-play"
-                            fill="currentColor"
-                            height="32"
-                            viewBox="0 0 16 16"
-                            width="32"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" />
-                          </svg>
-                        )}
-                      </button>
-                      <button className="btn btn-secondary" onClick={() => changeSong(true)}>
-                        <svg
-                          className="bi bi-skip-forward"
-                          fill="currentColor"
-                          height="32"
-                          viewBox="0 0 16 16"
-                          width="32"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.752l-6.267 3.636c-.52.302-1.233-.043-1.233-.696v-2.94l-6.267 3.636C.713 12.69 0 12.345 0 11.692V4.308c0-.653.713-.998 1.233-.696L7.5 7.248v-2.94c0-.653.713-.998 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5zM1 4.633v6.734L6.804 8 1 4.633zm7.5 0v6.734L14.304 8 8.5 4.633z" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div className="card-footer">
-                  <div className="d-grid my-1">
-                    <button
-                      className="btn btn-primary btn-lg"
-                      onClick={() => purchaseItem(marketItems[currentAudioIndex])}
-                    >
-                      {`Buy for ${ethers.utils.formatEther(marketItems[currentAudioIndex].price)} ETH`}
-                    </button>
-                  </div>
+        <main className="flex justify-between gap-4" role="main">
+          <div className="sidebar glass p-8 space-y-4">
+            <div className="text-primary text-base font-bold">
+              Up Next ({currentAudioIndex + 1} of {marketItems.length})
+            </div>
+            {marketItems.map((item, idx) => (
+              <div className="text-left" key={idx}>
+                <hr className="my-2" />
+                {item.name}
+              </div>
+            ))}
+          </div>
+          <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio>
+          <div className="card space-y-10 glass p-8 min-w-5xl max-w-5xl">
+            <div className="card-body text-primary flex">
+              <Image
+                alt=""
+                className="card-img-top"
+                height={480}
+                src={marketItems[currentAudioIndex].identicon}
+                width={480}
+              />
+              <div className="container flex flex-col items-center justify-between">
+                <div className="text-7xl font-bold">{marketItems[currentAudioIndex].name}</div>
+                {/* TODO: change the slider here */}
+                <Slider className="w-full top-0 left-0" defaultValue={[0]} max={100} min={0} step={1} />
+                <div className="flex px-4 scale-150">
+                  <Button onClick={() => changeSong(false)} variant="ghost">
+                    <GrChapterPrevious />
+                  </Button>
+                  <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
+                    {isAudioPlaying ? <GrPause /> : <GrPlay />}
+                  </Button>
+                  <Button onClick={() => changeSong(true)} variant="ghost">
+                    <GrChapterNext />
+                  </Button>
                 </div>
               </div>
             </div>
-          </main>
-          <footer>
-            <PlaybackBar
-              albumArtUrl={marketItems[currentAudioIndex].identicon}
-              artistName="DappFi"
-              trackTitle="NFT Music 1"
-            />
-          </footer>
-        </div>
+            <div className="card-footer">
+              <div className="d-grid my-1">
+                <Button onClick={() => purchaseItem(marketItems[currentAudioIndex])} variant="outline">
+                  {`Buy for ${ethers.utils.formatEther(marketItems[currentAudioIndex].price)} ETH`}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
       ) : (
         <main className="p-4">
           <h2>No listed assets</h2>
         </main>
       )}
+      <PlaybackBar
+        audioElement={audioElement}
+        changeSong={changeSong}
+        currentAudioIndex={currentAudioIndex}
+        isAudioPlaying={isAudioPlaying}
+        marketItems={marketItems}
+        setCurrentAudioIndex={setCurrentAudioIndex}
+        setIsAudioPlaying={setIsAudioPlaying}
+      />
     </div>
   );
 }

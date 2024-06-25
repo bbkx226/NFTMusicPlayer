@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 import NFTMusicPlayerAbi from "../abi/NFTMusicPlayer.json";
 import NFTMusicPlayerAddress from "../abi/NFTMusicPlayer-address.json";
-import Header from "./components/Header";
+import Header from "../components/Header";
 import "./globals.css";
 
 // Extend the Window interface to include the ethereum object
