@@ -90,12 +90,12 @@
     position: relative;
     overflow: hidden;
   }
-  
+
   .glass-hover {
     position: relative;
     overflow: hidden;
   }
-  
+
   .glass-hover::before {
     content: "";
     background: rgba(255, 255, 255, 0.4);
@@ -107,11 +107,11 @@
     position: absolute;
     transition: left var(--transition-duration, 0.5s) var(--transition-easing, ease);
   }
-  
+
   .glass-hover.animate::before {
     left: 175%;
   }
-  
+
   .swiper_container {
     height: 32rem;
     padding: 2rem 0;
@@ -216,5 +216,36 @@
 
   .swiper-pagination .swiper-pagination-bullet-active {
     background: var(--primary);
+  }
+
+  .spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spotlight::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    clip-path: circle(100px at 0% 50%);
+    animation: spotlight 10s infinite linear;
+    background: radial-gradient(circle, rgba(17, 17, 58, 0.324), rgba(0, 123, 255, 0.393), rgba(0, 255, 255, 0.236), rgba(137, 43, 226, 0.248));
+    background-size: 400% 400%;
+    z-index: 1;
+  }
+
+  @keyframes spotlight {
+    0% {
+      clip-path: circle(100px at 0% 50%);
+    }
+    50% {
+      clip-path: circle(150px at 100% 50%);
+    }
+    100% {
+      clip-path: circle(100px at 0% 50%);
+    }
   }
 }
