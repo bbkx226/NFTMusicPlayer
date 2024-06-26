@@ -140,7 +140,7 @@ export default function Resales() {
           <div className="px-5 w-full">
             {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3"> */}
             <div className="glass">
-              <div className="glass-header py-4 spotlight">
+              <div className="glass-header py-4 spotlight-left">
                 <h2 className="text-2xl font-semibold">Listed NFT Music</h2>
                 <span className="text-base font-normal text-zinc-300">
                   - Explore the catalog of NFT music ready for resale -
@@ -205,7 +205,7 @@ export default function Resales() {
               </Swiper>
             </div>
             <div className="glass w-full mt-4">
-              <div className="glass-header py-4 spotlight">
+              <div className="glass-header py-4 spotlight-right">
                 <h2 className="text-2xl font-semibold">Music Sales Insights</h2>
                 <span className="text-base font-normal text-zinc-300">- Gain insights into your NFT music sales -</span>
               </div>
