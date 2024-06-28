@@ -112,6 +112,27 @@
     left: 175%;
   }
 
+  .glass-hover2 {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-hover2::before {
+    content: "";
+    background: rgba(255, 255, 255, 0.4);
+    left: -130%;
+    width: 60%;
+    height: 100%;
+    top: 0%;
+    transform: skew(45deg);
+    position: absolute;
+    transition: left var(--transition-duration, 0.5s) var(--transition-easing, ease);
+  }
+
+  .glass-hover2.animate::before {
+    left: 175%;
+  }
+
   .spotlight-left {
     position: relative;
     overflow: hidden;

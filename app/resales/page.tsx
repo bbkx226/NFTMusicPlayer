@@ -102,20 +102,6 @@ export default function Resales() {
     const swiper = type === "listed" ? listedSwiper.current : soldSwiper.current;
     if (swiper) {
       swiper.slideTo(index);
-      //   const audio = audioRefs.current[index];
-      //   if (audio.paused) {
-      //     audio.play();
-      //   } else {
-      //     audio.pause();
-      //   }
-      // } else {
-      //   // Pause currently playing audio (if any)
-      //   if (currentAudioIndex !== null) {
-      //     audioRefs.current[currentAudioIndex].pause();
-      //   }
-      //   // Play the clicked audio
-      //   audioRefs.current[index].play();
-      //   setCurrentAudioIndex(index); // Update the current audio index
     }
 
     if (type === "listed") {
@@ -126,8 +112,38 @@ export default function Resales() {
       requestAnimationFrame(() => {
         slide.classList.add("animate"); // Add the class to start the animation
       });
+    } else {
+      // Trigger the shiny effect
+      const slide = document.querySelectorAll(".glass-hover2")[index];
+      slide.classList.remove("animate"); // Remove the class if it exists
+      // Use requestAnimationFrame to force reflow
+      requestAnimationFrame(() => {
+        slide.classList.add("animate"); // Add the class to start the animation
+      });
     }
   };
+
+  // const handleSlideItemClick = (index: number, type: "listed" | "sold") => {
+  //   if (type === "listed" && listedSwiper.current) {
+  //     listedSwiper.current.slideTo(index);
+  //     const slide = listedSwiper.current.slides[index]?.querySelector(".glass-hover");
+  //     if (slide) {
+  //       slide.classList.remove("animate");
+  //       requestAnimationFrame(() => {
+  //         slide.classList.add("animate");
+  //       });
+  //     }
+  //   } else if (type === "sold" && soldSwiper.current) {
+  //     soldSwiper.current.slideTo(index);
+  //     const slide = soldSwiper.current.slides[index]?.querySelector(".glass-hover2");
+  //     if (slide) {
+  //       slide.classList.remove("animate");
+  //       requestAnimationFrame(() => {
+  //         slide.classList.add("animate");
+  //       });
+  //     }
+  //   }
+  // };
 
   useEffect(() => {
     if (listedSwiper.current) {
@@ -173,7 +189,7 @@ export default function Resales() {
                   - Explore the catalog of NFT music ready for resale -
                 </span>
               </div>
-              <div className="flex items-center h-128 w-full px-16 py-8">
+              <div className="flex items-center h-128 w-full px-16 py-8 pb-12">
                 {resaleItems.length > 0 && (
                   <div
                     className={`absolute top-1/2 z-10 left-0 transform -translate-y-1/2 -translate-x-full flex items-center justify-center`}
@@ -187,7 +203,7 @@ export default function Resales() {
                 <Swiper
                   autoplay={{ delay: 5000 }}
                   centeredSlides={true}
-                  className="relative h-full w-full"
+                  className="relative h-full w-full pb-12"
                   coverflowEffect={{
                     depth: 100,
                     modifier: 2.5,
@@ -199,17 +215,17 @@ export default function Resales() {
                   loop={false}
                   modules={[EffectCoverflow, Pagination, Navigation, Autoplay]}
                   navigation={{ nextEl: ".swiper-button-next-listed", prevEl: ".swiper-button-prev-listed" }}
+                  onSlideChange={swiper => setActiveSlide(swiper.activeIndex)}
                   onSwiper={ref => {
                     listedSwiper.current = ref;
                     setTotalSlides(ref.slides.length);
                   }}
-                  onSlideChange={swiper => setActiveSlide(swiper.activeIndex)}
                   // pagination={true}
                   slidesPerView={"auto"}
                 >
                   {resaleItems.map((item, idx) => (
                     <SwiperSlide
-                      className="relative hover:shadow-cyan-600 shadow-lg glass grid grid-rows-3 rounded-lg w-148 h-168 md:w-72 md:h-96 lg:w-92 lg:h-104 glass-hover"
+                      className={`relative hover:shadow-cyan-600 shadow-lg glass grid grid-rows-3 rounded-lg w-148 h-168 md:w-72 md:h-96 lg:w-92 lg:h-104 glass-hover`}
                       key={idx}
                       onClick={() => handleSlideItemClick(idx, "listed")}
                     >
@@ -257,7 +273,7 @@ export default function Resales() {
                 <Swiper
                   autoplay={{ delay: 5000 }}
                   centeredSlides={true}
-                  className="relative h-full w-full"
+                  className="relative h-full w-full pb-12"
                   coverflowEffect={{
                     depth: 100,
                     modifier: 2.5,
@@ -271,13 +287,13 @@ export default function Resales() {
                   onSwiper={ref => {
                     soldSwiper.current = ref;
                   }}
-                  pagination={true}
+                  // pagination={true}
                   slidesPerView={"auto"}
                 >
                   {completedSales && completedSales.length > 0 ? (
                     completedSales.map((item, idx) => (
                       <SwiperSlide
-                        className="relative hover:shadow-cyan-600 shadow-lg glass grid grid-rows-3 rounded-lg w-148 h-168 md:w-72 md:h-96 lg:w-92 lg:h-104 glass-hover"
+                        className={`relative hover:shadow-cyan-600 shadow-lg glass grid grid-rows-3 rounded-lg w-148 h-168 md:w-72 md:h-96 lg:w-92 lg:h-104 glass-hover2`}
                         key={idx}
                         onClick={() => handleSlideItemClick(idx, "sold")}
                       >
