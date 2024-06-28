@@ -242,4 +242,38 @@
     border-radius: 48px;
     border: 1px solid rgba(255, 255, 255, 0.125);
   }
+
+  .swiper-button-prev-listed,
+.swiper-button-next-listed,
+.swiper-button-prev-sold,
+.swiper-button-next-sold {
+  display: block;
+  position: absolute;
+  top: 50%;
+  width: 27px;
+  height: 44px;
+  margin-top: -22px;
+  z-index: 10;
+  cursor: pointer;
+  background-size: 27px 44px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.swiper-button-prev-listed {
+  left: 10px;
+}
+
+.swiper-button-next-listed {
+  right: 10px;
+}
+
+.swiper-button-prev-sold {
+  left: 10px;
+}
+
+.swiper-button-next-sold {
+  right: 10px;
+}
+
 }
