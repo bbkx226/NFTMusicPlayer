@@ -123,28 +123,6 @@ export default function Resales() {
     }
   };
 
-  // const handleSlideItemClick = (index: number, type: "listed" | "sold") => {
-  //   if (type === "listed" && listedSwiper.current) {
-  //     listedSwiper.current.slideTo(index);
-  //     const slide = listedSwiper.current.slides[index]?.querySelector(".glass-hover");
-  //     if (slide) {
-  //       slide.classList.remove("animate");
-  //       requestAnimationFrame(() => {
-  //         slide.classList.add("animate");
-  //       });
-  //     }
-  //   } else if (type === "sold" && soldSwiper.current) {
-  //     soldSwiper.current.slideTo(index);
-  //     const slide = soldSwiper.current.slides[index]?.querySelector(".glass-hover2");
-  //     if (slide) {
-  //       slide.classList.remove("animate");
-  //       requestAnimationFrame(() => {
-  //         slide.classList.add("animate");
-  //       });
-  //     }
-  //   }
-  // };
-
   useEffect(() => {
     if (listedSwiper.current) {
       setTotalSlides(listedSwiper.current.slides.length);
