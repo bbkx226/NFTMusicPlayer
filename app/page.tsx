@@ -1,5 +1,6 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
+import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ethers } from "ethers";
@@ -17,6 +18,8 @@ import {
 
 import { useBlockchain } from "./layout";
 
+import Logo from "/public/logo.png";
+
 // Define TypeScript interfaces for token and item data structures
 interface IToken {
   nftPrice: ethers.BigNumber;
@@ -24,7 +27,9 @@ interface IToken {
 }
 
 export interface IItem {
+  artist: string;
   audio: string;
+  duration: number;
   identicon: string;
   itemId: ethers.BigNumber;
   name: string;
@@ -43,7 +48,8 @@ export default function Home() {
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
-  const [volume, setVolume] = useState(50);
+
+  const [tracks, setTracks] = useState<IItem[]>([]); // State for tracks
 
   // Function to load marketplace items
   const fetchMarketItems = async () => {
@@ -58,7 +64,9 @@ export default function Home() {
         const metadata = await response.json(); // Parse the JSON response
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`; // Generate identicon based on metadata
         const item: IItem = {
+          artist: metadata.artist,
           audio: metadata.audio,
+          duration: metadata.duration,
           identicon,
           itemId: token.nftTokenId,
           name: metadata.name,
@@ -79,10 +87,20 @@ export default function Home() {
     }
   };
 
+  // Function to load dummy tracks
+  const fetchTracks = async () => {
+    const tracks = await fetch("/tracks.json").then(response => response.json());
+    setTracks(tracks);
+    setIsLoading(false);
+  };
+
   // Effect to load marketplace items on component mount
   useEffect(() => {
-    if (marketItems.length === 0) {
-      fetchMarketItems(); // Fetch market items if the list is empty
+    // if (marketItems.length === 0) {
+    //   fetchMarketItems(); // Fetch market items if the list is empty
+    // }
+    if (tracks.length === 0) {
+      fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
     }
   });
 
@@ -92,7 +110,8 @@ export default function Home() {
       if (isNext) {
         setCurrentAudioIndex(prevIndex => {
           let newIndex = prevIndex + 1;
-          if (newIndex > marketItems.length - 1) {
+          // if (newIndex > marketItems.length - 1) {
+          if (newIndex > tracks.length - 1) {
             newIndex = 0; // Wrap around to the first item if at the end of the list
           }
           return newIndex;
@@ -101,13 +120,15 @@ export default function Home() {
         setCurrentAudioIndex(prevIndex => {
           let newIndex = prevIndex - 1;
           if (newIndex < 0) {
-            newIndex = marketItems.length - 1; // Wrap around to the last item if at the beginning of the list
+            // newIndex = marketItems.length - 1; // Wrap around to the last item if at the beginning of the list
+            newIndex = tracks.length - 1; // Wrap around to the last item if at the beginning of the list
           }
           return newIndex;
         });
       }
     },
-    [marketItems.length]
+    // [marketItems.length]
+    [tracks.length]
   ); // Add an empty array as the second argument
 
   useEffect(() => {
@@ -139,12 +160,6 @@ export default function Home() {
 
   useEffect(() => {
     if (audioElement.current) {
-      audioElement.current.volume = volume / 100; // Set the volume to the value of the volume state
-    }
-  }, [audioElement, volume]);
-
-  useEffect(() => {
-    if (audioElement.current) {
       if (isAudioPlaying) {
         audioElement.current.play();
       } else {
@@ -159,10 +174,6 @@ export default function Home() {
       audioElement.current.currentTime = newTime;
       setPlaybackPosition(value[0]);
     }
-  };
-
-  const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0]);
   };
 
   const formatTime = (seconds: number) => {
@@ -180,7 +191,14 @@ export default function Home() {
     );
 
   // Display a message if there are no items in the market
-  if (marketItems.length === 0) {
+  // if (marketItems.length === 0) {
+  //   return (
+  //     <main className="p-4">
+  //       <h2>No listed assets</h2>
+  //     </main>
+  //   );
+  // }
+  if (tracks.length === 0) {
     return (
       <main className="p-4">
         <h2>No listed assets</h2>
@@ -190,40 +208,16 @@ export default function Home() {
 
   return (
     <div className="container mx-auto mt-5">
-      <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio>
-      <main className="grid grid-cols-5" role="main">
-        <div className="sidebar glass pt-4 pb-2">
-          <div className="text-primary text-base font-bold pb-4">
-            Up Next ({currentAudioIndex + 1} of {marketItems.length})
-          </div>
-          {marketItems.map((item, idx) => (
-            <div key={idx}>
-              <hr />
-              {idx === currentAudioIndex ? (
-                <div
-                  className="text-left cursor-pointer flex items-center text-wrap px-4 py-2 gap-4 bg-primary/10"
-                  onClick={() => setCurrentAudioIndex(idx)}
-                >
-                  <Image alt="" height={40} src={item.identicon} width={40} />
-                  <div>
-                    {item.name}
-                    <div className="text-xs text-gray-400">Artist</div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="text-left cursor-pointer flex items-center text-wrap px-4 py-2 gap-4 hover:bg-primary/10"
-                  onClick={() => setCurrentAudioIndex(idx)}
-                >
-                  <Image alt="" height={40} src={item.identicon} width={40} />
-                  <div>
-                    {item.name}
-                    <div className="text-xs text-gray-400">Artist</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+      {/* <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio> */}
+      <audio ref={audioElement} src={tracks[currentAudioIndex]?.audio}></audio>
+      <main className="grid grid-cols-7" role="main">
+        <div className="col-span-2">
+          <Playlist
+            currentAudioIndex={currentAudioIndex}
+            setCurrentAudioIndex={setCurrentAudioIndex}
+            // marketItems={marketItems}
+            tracks={tracks}
+          />
         </div>
 
         <div className="card col-span-3 space-y-10 p-8 text-primary">
@@ -232,13 +226,15 @@ export default function Home() {
               alt=""
               className="card-img-top"
               height={300}
-              src={marketItems[currentAudioIndex].identicon}
+              // src={marketItems[currentAudioIndex].identicon}
+              src={Logo}
               width={300}
             />
           </div>
           <div className="container flex flex-col items-center justify-between">
             <div>
-              <div className="text-5xl font-bold">{marketItems[currentAudioIndex].name}</div>
+              {/* <div className="text-5xl font-bold">{marketItems[currentAudioIndex].name}</div> */}
+              <div className="text-5xl font-bold line-clamp-1">{tracks[currentAudioIndex]?.name}</div>
               <div className="text-2xl text-gray-400 py-4">Artist</div>
             </div>
             <div className="flex flex-col w-full items-center justify-center">
@@ -252,36 +248,38 @@ export default function Home() {
               />
               {formatTime(elapsedTime)} / {formatTime(totalTime)}
             </div>
-            <div className="flex pt-4 scale-150">
+            <div className="flex pt-4">
               <Button variant="ghost">
-                <MdOutlineShuffle />
+                <MdOutlineShuffle className="w-6 h-6" />
               </Button>
               <Button onClick={() => changeSong(false)} variant="ghost">
-                <MdOutlineSkipPrevious />
+                <MdOutlineSkipPrevious className="w-8 h-8" />
               </Button>
               <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
-                {isAudioPlaying ? <MdOutlinePause /> : <MdOutlinePlayArrow />}
+                {isAudioPlaying ? <MdOutlinePause className="w-8 h-8" /> : <MdOutlinePlayArrow className="w-10 h-10" />}
               </Button>
               <Button onClick={() => changeSong(true)} variant="ghost">
-                <MdOutlineSkipNext />
+                <MdOutlineSkipNext className="w-8 h-8" />
               </Button>
               <Button variant="ghost">
-                <MdOutlineRepeatOne />
+                <MdOutlineRepeatOne className="w-7 h-7" />
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="sidebar glass p-8 space-y-4">
+        <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
           <div className="text-primary text-base font-bold">Buy This Song</div>
           <div className="text-left">
-            <div className="text-lg font-bold">{marketItems[currentAudioIndex].name}</div>
-            <div className="text-sm text-gray-400">Artist: </div>
+            {/* <div className="text-lg font-bold">{marketItems[currentAudioIndex].name}</div> */}
+            <div className="text-lg font-bold">{tracks[currentAudioIndex]?.name}</div>
+            <div className="text-sm text-gray-400">{tracks[currentAudioIndex]?.artist}</div>
           </div>
           <div className="flex justify-center">
-            <Button onClick={() => purchaseItem(marketItems[currentAudioIndex])} variant="outline">
+            {/* <Button onClick={() => purchaseItem(marketItems[currentAudioIndex])} variant="outline">
               {`Buy for ${ethers.utils.formatEther(marketItems[currentAudioIndex].price)} ETH`}
-            </Button>
+            </Button> */}
+            <Button variant="outline">{`Buy for ${tracks[currentAudioIndex]?.price} ETH`}</Button>
           </div>
         </div>
       </main>
