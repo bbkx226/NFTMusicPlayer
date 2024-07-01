@@ -290,8 +290,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-between px-4">
             <div className="h-36 flex flex-col justify-center">
               <div className="text-4xl font-bold">{playlist[currentAudioIndex]?.name}</div>
-              {/* <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div> */}
-              <div className="text-2xl text-gray-400 py-2">artist</div>
+              <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
             </div>
             <div className="flex flex-col w-full items-center justify-center">
               <Slider
@@ -334,8 +333,7 @@ export default function Home() {
           <div className="text-primary text-base font-bold">Buy This Song</div>
           <div className="text-left">
             <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
-            {/* <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div> */}
-            <div className="text-sm text-gray-400">artist</div>
+            <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div>
           </div>
           <div className="flex justify-center">
             <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
