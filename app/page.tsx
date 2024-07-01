@@ -212,12 +212,7 @@ export default function Home() {
       <audio ref={audioElement} src={tracks[currentAudioIndex]?.audio}></audio>
       <main className="grid grid-cols-7" role="main">
         <div className="col-span-2">
-          <Playlist
-            currentAudioIndex={currentAudioIndex}
-            setCurrentAudioIndex={setCurrentAudioIndex}
-            // marketItems={marketItems}
-            tracks={tracks}
-          />
+          <Playlist currentAudioIndex={currentAudioIndex} setCurrentAudioIndex={setCurrentAudioIndex} tracks={tracks} />
         </div>
 
         <div className="card col-span-3 space-y-10 p-8 text-primary">

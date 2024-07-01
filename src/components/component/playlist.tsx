@@ -18,16 +18,10 @@ import Logo from "/public/logo.png";
 interface PlaylistProps {
   currentAudioIndex: number;
   setCurrentAudioIndex: Dispatch<SetStateAction<number>>;
-  // marketItems: IItem[];
   tracks: IItem[];
 }
 
-export const Playlist: React.FC<PlaylistProps> = ({
-  currentAudioIndex,
-  // marketItems,
-  setCurrentAudioIndex,
-  tracks
-}) => {
+export const Playlist: React.FC<PlaylistProps> = ({ currentAudioIndex, setCurrentAudioIndex, tracks }) => {
   const trackRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // auto scroll to currently playing song
@@ -59,7 +53,6 @@ export const Playlist: React.FC<PlaylistProps> = ({
       </div>
       <ScrollArea className="h-[500px]">
         <div className="grid gap-4 pr-4">
-          {/* {marketItems.map((item, idx) => ( */}
           {tracks.map((item, idx) => (
             <div
               className={"flex items-center gap-4 cursor-pointer"}
