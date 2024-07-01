@@ -289,7 +289,7 @@ export default function Home() {
         </div>
 
         <div className="card col-span-3 space-y-10 px-4 text-primary">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center pt-2">
             <Image
               alt=""
               className="card-img-top"
