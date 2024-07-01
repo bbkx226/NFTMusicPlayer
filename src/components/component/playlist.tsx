@@ -69,7 +69,7 @@ export const Playlist: React.FC<PlaylistProps> = ({ currentAudioIndex, setCurren
                     <TooltipTrigger>
                       <div className="track-name text-base text-left line-clamp-1">{item.name}</div>
                     </TooltipTrigger>
-                    <TooltipContent className="border px-2 bg-background rounded-lg" side="bottom">
+                    <TooltipContent className="border px-2 bg-background rounded-lg text-sm" side="bottom">
                       {item.name}
                     </TooltipContent>
                   </Tooltip>
