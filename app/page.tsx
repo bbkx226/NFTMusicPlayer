@@ -174,6 +174,17 @@ export default function Home() {
     const handleEnd = () => {
       switch (repeatMode) {
         case repeatModes.NONE:
+          if (currentAudioIndex === playlist.length - 1) {
+            break;
+          } else {
+            setCurrentAudioIndex(prevIndex => {
+              let newIndex = prevIndex + 1;
+              if (newIndex > playlist.length - 1) {
+                newIndex = 0; // Wrap around to the first item if at the end of the list
+              }
+              return newIndex;
+            });
+          }
           break;
         case repeatModes.PLAYLIST:
           setCurrentAudioIndex(prevIndex => {
