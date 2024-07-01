@@ -5,23 +5,36 @@
  */
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import { TooltipContent } from "@radix-ui/react-tooltip";
 import Image from "next/image";
 import React, { Dispatch, SetStateAction, useEffect, useRef } from "react";
-import { MdOutlineRepeatOne, MdOutlineShuffle } from "react-icons/md";
+import { MdOutlineRepeat, MdOutlineRepeatOne, MdOutlineShuffle } from "react-icons/md";
 
-import { IItem } from "../../../app/page";
+import { IItem, repeatModes } from "../../../app/page";
 import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 import Logo from "/public/logo.png";
 
 interface PlaylistProps {
   currentAudioIndex: number;
+  handleRepeatModeChange: () => void;
+  handleShuffle: () => void;
+  isShuffle: boolean;
+  repeatMode: repeatModes;
   setCurrentAudioIndex: Dispatch<SetStateAction<number>>;
   tracks: IItem[];
 }
 
-export const Playlist: React.FC<PlaylistProps> = ({ currentAudioIndex, setCurrentAudioIndex, tracks }) => {
+export const Playlist: React.FC<PlaylistProps> = ({
+  currentAudioIndex,
+  handleRepeatModeChange,
+  handleShuffle,
+  isShuffle,
+  repeatMode,
+  setCurrentAudioIndex,
+  tracks
+}) => {
   const trackRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // auto scroll to currently playing song
@@ -39,15 +52,21 @@ export const Playlist: React.FC<PlaylistProps> = ({ currentAudioIndex, setCurren
   };
 
   return (
-    <div className="bg-background rounded-lg border px-6 py-4 w-full max-w-md">
+    <div className="bg-background rounded-lg border px-6 py-4 w-full max-w-md h-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Playlist</h2>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost">
-            <MdOutlineShuffle className="w-6 h-6 text-primary/50" />
+          <Button onClick={handleShuffle} size="sm" variant="ghost">
+            <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
           </Button>
-          <Button size="sm" variant="ghost">
-            <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
+          <Button onClick={handleRepeatModeChange} size="sm" variant="ghost">
+            {repeatMode === repeatModes.NONE ? (
+              <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
+            ) : repeatMode === repeatModes.PLAYLIST ? (
+              <MdOutlineRepeat className="w-6 h-6 text-primary" />
+            ) : (
+              <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
+            )}
           </Button>
         </div>
       </div>
@@ -62,7 +81,7 @@ export const Playlist: React.FC<PlaylistProps> = ({ currentAudioIndex, setCurren
                 trackRefs.current[idx] = el as HTMLDivElement | null;
               }}
             >
-              <Image alt={item.name} height={36} src={Logo} width={36} />
+              <Image alt={item.name} height={36} src={item.identicon ?? Logo} width={36} />
               <div className="flex-1 text-left">
                 <TooltipProvider>
                   <Tooltip>

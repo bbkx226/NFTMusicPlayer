@@ -3,6 +3,7 @@
 import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
@@ -10,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   MdOutlinePause,
   MdOutlinePlayArrow,
+  MdOutlineRepeat,
   MdOutlineRepeatOne,
   MdOutlineShuffle,
   MdOutlineSkipNext,
@@ -17,8 +19,6 @@ import {
 } from "react-icons/md";
 
 import { useBlockchain } from "./layout";
-
-import Logo from "/public/logo.png";
 
 // Define TypeScript interfaces for token and item data structures
 interface IToken {
@@ -36,6 +36,12 @@ export interface IItem {
   price: ethers.BigNumber;
 }
 
+export enum repeatModes {
+  NONE,
+  ONE,
+  PLAYLIST
+}
+
 // NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
 export default function Home() {
   const { blockchainContract } = useBlockchain(); // Destructure blockchainContract from useBlockchain hook
@@ -48,8 +54,9 @@ export default function Home() {
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
-
-  const [tracks, setTracks] = useState<IItem[]>([]); // State for tracks
+  const [playlist, setPlaylist] = useState<IItem[]>([]);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<repeatModes>(repeatModes.NONE); // State for repeat mode
 
   // Function to load marketplace items
   const fetchMarketItems = async () => {
@@ -64,10 +71,10 @@ export default function Home() {
         const metadata = await response.json(); // Parse the JSON response
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`; // Generate identicon based on metadata
         const item: IItem = {
-          artist: metadata.artist,
+          artist: metadata.artist ?? "Uknown Artist",
           audio: metadata.audio,
-          duration: metadata.duration,
-          identicon,
+          duration: metadata.duration ?? 0,
+          identicon: identicon,
           itemId: token.nftTokenId,
           name: metadata.name,
           price: token.nftPrice
@@ -76,6 +83,7 @@ export default function Home() {
       })
     );
     setMarketItems(fetchedItems);
+    setPlaylist(fetchedItems);
     setIsLoading(false);
   };
 
@@ -87,31 +95,29 @@ export default function Home() {
     }
   };
 
-  // Function to load dummy tracks
-  const fetchTracks = async () => {
-    const tracks = await fetch("/tracks.json").then(response => response.json());
-    setTracks(tracks);
-    setIsLoading(false);
-  };
-
   // Effect to load marketplace items on component mount
   useEffect(() => {
-    // if (marketItems.length === 0) {
-    //   fetchMarketItems(); // Fetch market items if the list is empty
-    // }
-    if (tracks.length === 0) {
-      fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
+    // Function to load dummy tracks
+    // const fetchTracks = async () => {
+    //   const tracks = await fetch("/tracks.json").then(response => response.json());
+    //   setMarketItems(tracks);
+    //   setPlaylist(tracks);
+    //   setIsLoading(false);
+    // };
+
+    if (marketItems.length === 0) {
+      fetchMarketItems(); // Fetch market items if the list is empty
+      // fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
     }
   });
 
   // Function to skip to the next or previous song
-  const changeSong = useCallback(
+  const handleChangeSong = useCallback(
     (isNext: boolean) => {
       if (isNext) {
         setCurrentAudioIndex(prevIndex => {
           let newIndex = prevIndex + 1;
-          // if (newIndex > marketItems.length - 1) {
-          if (newIndex > tracks.length - 1) {
+          if (newIndex > playlist.length - 1) {
             newIndex = 0; // Wrap around to the first item if at the end of the list
           }
           return newIndex;
@@ -120,19 +126,75 @@ export default function Home() {
         setCurrentAudioIndex(prevIndex => {
           let newIndex = prevIndex - 1;
           if (newIndex < 0) {
-            // newIndex = marketItems.length - 1; // Wrap around to the last item if at the beginning of the list
-            newIndex = tracks.length - 1; // Wrap around to the last item if at the beginning of the list
+            newIndex = playlist.length - 1; // Wrap around to the last item if at the beginning of the list
           }
           return newIndex;
         });
       }
     },
-    // [marketItems.length]
-    [tracks.length]
+    [playlist.length]
   ); // Add an empty array as the second argument
+
+  const shufflePlaylist = (songs: IItem[]) => {
+    const shuffledSongs = [...songs].sort(() => Math.random() - 0.5);
+    return shuffledSongs;
+  };
+
+  const handleShuffle = () => {
+    const newShuffleState = !isShuffle;
+    setIsShuffle(newShuffleState);
+
+    if (newShuffleState) {
+      const shuffledPlaylist = shufflePlaylist([...marketItems]);
+      setPlaylist(shuffledPlaylist);
+    } else {
+      setPlaylist([...marketItems]);
+    }
+
+    setCurrentAudioIndex(0);
+  };
+
+  const handleRepeatModeChange = () => {
+    setRepeatMode(prevMode => {
+      switch (prevMode) {
+        case repeatModes.NONE:
+          return repeatModes.PLAYLIST;
+        case repeatModes.PLAYLIST:
+          return repeatModes.ONE;
+        case repeatModes.ONE:
+        default:
+          return repeatModes.NONE;
+      }
+    });
+  };
 
   useEffect(() => {
     const currentAudio = audioElement.current; // Capture audioElement.current in a local variable
+
+    const handleEnd = () => {
+      switch (repeatMode) {
+        case repeatModes.NONE:
+          break;
+        case repeatModes.PLAYLIST:
+          setCurrentAudioIndex(prevIndex => {
+            let newIndex = prevIndex + 1;
+            if (newIndex > playlist.length - 1) {
+              newIndex = 0; // Wrap around to the first item if at the end of the list
+            }
+            return newIndex;
+          });
+          break;
+        case repeatModes.ONE:
+          setCurrentAudioIndex(prevIndex => {
+            let newIndex = prevIndex + 1;
+            if (newIndex > playlist.length - 1) {
+              newIndex = 0; // Wrap around to the first item if at the end of the list
+            }
+            return newIndex;
+          });
+          break;
+      }
+    };
 
     const updateProgress = () => {
       if (currentAudio) {
@@ -147,16 +209,16 @@ export default function Home() {
 
     if (currentAudio) {
       currentAudio.addEventListener("timeupdate", updateProgress);
-      currentAudio.addEventListener("ended", () => changeSong(true));
+      currentAudio.addEventListener("ended", handleEnd);
     }
 
     return () => {
       if (currentAudio) {
         currentAudio.removeEventListener("timeupdate", updateProgress);
-        currentAudio.removeEventListener("ended", () => changeSong(true));
+        currentAudio.removeEventListener("ended", handleEnd);
       }
     };
-  }, [audioElement, changeSong]);
+  }, [audioElement, handleChangeSong, repeatMode, currentAudioIndex, playlist.length]);
 
   useEffect(() => {
     if (audioElement.current) {
@@ -191,14 +253,7 @@ export default function Home() {
     );
 
   // Display a message if there are no items in the market
-  // if (marketItems.length === 0) {
-  //   return (
-  //     <main className="p-4">
-  //       <h2>No listed assets</h2>
-  //     </main>
-  //   );
-  // }
-  if (tracks.length === 0) {
+  if (marketItems.length === 0) {
     return (
       <main className="p-4">
         <h2>No listed assets</h2>
@@ -208,29 +263,35 @@ export default function Home() {
 
   return (
     <div className="container mx-auto mt-5">
-      {/* <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio> */}
-      <audio ref={audioElement} src={tracks[currentAudioIndex]?.audio}></audio>
+      <audio ref={audioElement} src={playlist[currentAudioIndex]?.audio}></audio>
       <main className="grid grid-cols-7" role="main">
         <div className="col-span-2">
-          <Playlist currentAudioIndex={currentAudioIndex} setCurrentAudioIndex={setCurrentAudioIndex} tracks={tracks} />
+          <Playlist
+            currentAudioIndex={currentAudioIndex}
+            handleRepeatModeChange={handleRepeatModeChange}
+            handleShuffle={handleShuffle}
+            isShuffle={isShuffle}
+            repeatMode={repeatMode}
+            setCurrentAudioIndex={setCurrentAudioIndex}
+            tracks={playlist}
+          />
         </div>
 
-        <div className="card col-span-3 space-y-10 p-8 text-primary">
+        <div className="card col-span-3 space-y-10 px-4 text-primary">
           <div className="flex items-center justify-center">
             <Image
               alt=""
               className="card-img-top"
               height={300}
-              // src={marketItems[currentAudioIndex].identicon}
-              src={Logo}
+              src={playlist[currentAudioIndex]?.identicon}
               width={300}
             />
           </div>
-          <div className="container flex flex-col items-center justify-between">
-            <div>
-              {/* <div className="text-5xl font-bold">{marketItems[currentAudioIndex].name}</div> */}
-              <div className="text-5xl font-bold line-clamp-1">{tracks[currentAudioIndex]?.name}</div>
-              <div className="text-2xl text-gray-400 py-4">Artist</div>
+          <div className="flex flex-col items-center justify-between px-4">
+            <div className="h-36 flex flex-col justify-center">
+              <div className="text-4xl font-bold">{playlist[currentAudioIndex]?.name}</div>
+              {/* <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div> */}
+              <div className="text-2xl text-gray-400 py-2">artist</div>
             </div>
             <div className="flex flex-col w-full items-center justify-center">
               <Slider
@@ -244,20 +305,26 @@ export default function Home() {
               {formatTime(elapsedTime)} / {formatTime(totalTime)}
             </div>
             <div className="flex pt-4">
-              <Button variant="ghost">
-                <MdOutlineShuffle className="w-6 h-6" />
+              <Button onClick={handleShuffle} variant="ghost">
+                <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
               </Button>
-              <Button onClick={() => changeSong(false)} variant="ghost">
+              <Button onClick={() => handleChangeSong(false)} variant="ghost">
                 <MdOutlineSkipPrevious className="w-8 h-8" />
               </Button>
               <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
                 {isAudioPlaying ? <MdOutlinePause className="w-8 h-8" /> : <MdOutlinePlayArrow className="w-10 h-10" />}
               </Button>
-              <Button onClick={() => changeSong(true)} variant="ghost">
+              <Button onClick={() => handleChangeSong(true)} variant="ghost">
                 <MdOutlineSkipNext className="w-8 h-8" />
               </Button>
-              <Button variant="ghost">
-                <MdOutlineRepeatOne className="w-7 h-7" />
+              <Button onClick={handleRepeatModeChange} variant="ghost">
+                {repeatMode === repeatModes.NONE ? (
+                  <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
+                ) : repeatMode === repeatModes.PLAYLIST ? (
+                  <MdOutlineRepeat className="w-6 h-6 text-primary" />
+                ) : (
+                  <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
+                )}
               </Button>
             </div>
           </div>
@@ -266,15 +333,14 @@ export default function Home() {
         <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
           <div className="text-primary text-base font-bold">Buy This Song</div>
           <div className="text-left">
-            {/* <div className="text-lg font-bold">{marketItems[currentAudioIndex].name}</div> */}
-            <div className="text-lg font-bold">{tracks[currentAudioIndex]?.name}</div>
-            <div className="text-sm text-gray-400">{tracks[currentAudioIndex]?.artist}</div>
+            <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
+            {/* <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div> */}
+            <div className="text-sm text-gray-400">artist</div>
           </div>
           <div className="flex justify-center">
-            {/* <Button onClick={() => purchaseItem(marketItems[currentAudioIndex])} variant="outline">
-              {`Buy for ${ethers.utils.formatEther(marketItems[currentAudioIndex].price)} ETH`}
-            </Button> */}
-            <Button variant="outline">{`Buy for ${tracks[currentAudioIndex]?.price} ETH`}</Button>
+            <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
+              {`Buy for ${ethers.utils.formatEther(playlist[currentAudioIndex]?.price)} ETH`}
+            </Button>
           </div>
         </div>
       </main>
