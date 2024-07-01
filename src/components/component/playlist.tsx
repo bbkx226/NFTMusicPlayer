@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TooltipContent } from "@radix-ui/react-tooltip";
 import Image from "next/image";
-import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { MdOutlineRepeatOne, MdOutlineShuffle } from "react-icons/md";
 
 import { IItem } from "../../../app/page";
