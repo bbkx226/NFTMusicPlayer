@@ -307,15 +307,16 @@ export default function Resales() {
             </div>
           </div>
         ) : (
-          <main className="flex flex-col justify-center items-center py-48 ">
-            <Image
-              alt="No listed assets"
-              className="w-full h-96 object-cover rounded-t-lg"
-              height={240}
-              src="/noListedAsset.png"
-              width={240}
-            />
-            <h2 className="text-2xl font-bold">No listed assets</h2>
+          <main className="flex flex-col justify-center items-center min-h-screen">
+            <div className="cube">
+              <div className="face front"></div>
+              <div className="face back"></div>
+              <div className="face left"></div>
+              <div className="face right"></div>
+              <div className="face top"></div>
+              <div className="face bottom"></div>
+            </div>
+            <h2 className="text-3xl font-bold moving-text mt-20">No Listed Assets</h2>
           </main>
         )}
       </div>

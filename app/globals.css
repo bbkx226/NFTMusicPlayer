@@ -106,9 +106,9 @@
     transform: skew(45deg);
     position: absolute;
     transition: left var(--transition-duration, 0.5s) var(--transition-easing, ease);
-  } */
+  }
 
-  .glass-hover::before {
+   .glass-hover::before {
     content: "";
     background: rgba(255, 255, 255, 0.4);
     left: -150%;
@@ -220,15 +220,18 @@
   }
 
   .glass-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
-    padding: 20px 60px;
+    padding: 2px 15px;
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     backdrop-filter: blur(16px) saturate(180%);
     background-color: rgba(17, 25, 40, 0.5);
-    border-radius: 50px;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.125);
     color: #999;
-    font-size: 1.5em;
+    font-size: 1em;
     text-decoration: none;
     transition: 0.5s;
     overflow: hidden;
@@ -247,44 +250,6 @@
       0 0 40px var(--clr);
   }
 
-  @keyframes moveUpAndDown {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-  
-  .moving-text {
-    animation: moveUpAndDown 2s infinite;
-  }
-
-  /* Add cube styles */
-  .cube {
-    @apply relative w-48 h-48;
-    transform-style: preserve-3d;
-    animation: spin-slow 10s infinite linear;
-  }
-
-  .face {
-    @apply absolute w-48 h-48 bg-opacity-10 border-2 border-teal-400 shadow-xl;
-    background-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
-  }
-
-  .front  { transform: rotateY(  0deg) translateZ(6rem); }
-  .back   { transform: rotateY(180deg) translateZ(6rem); }
-  .left   { transform: rotateY(-90deg) translateZ(6rem); }
-  .right  { transform: rotateY( 90deg) translateZ(6rem); }
-  .top    { transform: rotateX( 90deg) translateZ(6rem); }
-  .bottom { transform: rotateX(-90deg) translateZ(6rem); }
-
-  @keyframes spin-slow {
-    from { transform: rotateX(0) rotateY(0); }
-    to   { transform: rotateX(360deg) rotateY(360deg); }
-  }
-  
   .glass-button::before {
     content: "";
     position: absolute;
@@ -310,41 +275,185 @@
     background-color: rgba(17, 25, 40, 0.5);
     position: absolute;
     inset: 2px;
-    border-radius: 48px;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.125);
   }
 
+  /* Glow Button */
+
+  .glow-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 5px 25px;
+    font-size: 1em;
+    color: #fff;
+    background: #020617;
+    border: 2px solid #9ca3af;
+    border-radius: 5px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s;
+    will-change: transform; 
+  }
+  
+  .glow-button::before {
+    content: "";
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, #0891b2, transparent 40%);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .glow-button:hover::before {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+
+  .glow-button:hover {
+    transform: scale(1.1); 
+  }
+
+  .glow-button span {
+    position: relative;
+    z-index: 1; 
+  }
+  
+  .glow-button:active {
+    border: 2px solid #0891b2;
+    
+  }
+
+  /*  */
+
   .swiper-button-prev-listed,
-.swiper-button-next-listed,
-.swiper-button-prev-sold,
-.swiper-button-next-sold {
-  display: block;
-  position: absolute;
-  top: 50%;
-  width: 27px;
-  height: 44px;
-  margin-top: -22px;
-  z-index: 10;
-  cursor: pointer;
-  background-size: 27px 44px;
-  background-position: center;
-  background-repeat: no-repeat;
-}
+  .swiper-button-next-listed,
+  .swiper-button-prev-sold,
+  .swiper-button-next-sold {
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 27px;
+    height: 44px;
+    margin-top: -22px;
+    z-index: 10;
+    cursor: pointer;
+    background-size: 27px 44px;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
 
-.swiper-button-prev-listed {
-  left: 10px;
-}
+  .swiper-button-prev-listed {
+    left: 10px;
+  }
 
-.swiper-button-next-listed {
-  right: 10px;
-}
+  .swiper-button-next-listed {
+    right: 10px;
+  }
 
-.swiper-button-prev-sold {
-  left: 10px;
-}
+  .swiper-button-prev-sold {
+    left: 10px;
+  }
 
-.swiper-button-next-sold {
-  right: 10px;
-}
+  .swiper-button-next-sold {
+    right: 10px;
+  }
 
+  .circle-button {
+    @apply flex items-center justify-center w-9 h-9 rounded-full border-2 border-current text-current transition-colors duration-300 ease-in-out;
+  }
+
+  .circle-button:hover {
+    @apply bg-opacity-20 text-slate-100 transform scale-110;
+    background-color: rgba(0, 0, 0, 0.1);
+    
+  }
+
+  @keyframes moveUpAndDown {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .moving-text {
+    animation: moveUpAndDown 2s infinite;
+  }
+
+  /* Add cube styles */
+  .cube {
+    @apply relative w-48 h-48;
+    transform-style: preserve-3d;
+    animation: spin-slow 10s infinite linear;
+  }
+
+  .face {
+    @apply absolute w-48 h-48 bg-opacity-10 border-2 border-teal-400 shadow-xl;
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+    animation: changeColor 10s infinite linear;
+  }
+
+  .front {
+    transform: rotateY(0deg) translateZ(6rem);
+  }
+  .back {
+    transform: rotateY(180deg) translateZ(6rem);
+  }
+  .left {
+    transform: rotateY(-90deg) translateZ(6rem);
+  }
+  .right {
+    transform: rotateY(90deg) translateZ(6rem);
+  }
+  .top {
+    transform: rotateX(90deg) translateZ(6rem);
+  }
+  .bottom {
+    transform: rotateX(-90deg) translateZ(6rem);
+  }
+
+  @keyframes spin-slow {
+    from {
+      transform: rotateX(0) rotateY(0);
+    }
+    to {
+      transform: rotateX(360deg) rotateY(360deg);
+    }
+  }
+
+  @keyframes changeColor {
+    0% {
+      background-color: rgba(186, 85, 211, 0.1); /* light purple */
+      border-color: rgba(186, 85, 211, 0.5);
+      box-shadow: 0 0 50px rgba(186, 85, 211, 0.5);
+    }
+    33% {
+      background-color: rgba(0, 255, 255, 0.1); /* cyan */
+      border-color: rgba(0, 255, 255, 0.5);
+      box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+    }
+    66% {
+      background-color: rgba(255, 0, 0, 0.1); /* red */
+      border-color: rgba(255, 0, 0, 0.5);
+      box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
+    }
+    100% {
+      background-color: rgba(186, 85, 211, 0.1); /* light purple */
+      border-color: rgba(186, 85, 211, 0.5);
+      box-shadow: 0 0 50px rgba(186, 85, 211, 0.5);
+    }
+  }
+  
 }
