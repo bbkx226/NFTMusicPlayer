@@ -347,18 +347,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <PlaybackBar
-        audioElement={audioElement}
-        currentAudioIndex={currentAudioIndex}
-        handleChangeSong={handleChangeSong}
-        handleRepeatModeChange={handleRepeatModeChange}
-        handleShuffle={handleShuffle}
-        isAudioPlaying={isAudioPlaying}
-        isShuffle={isShuffle}
-        playlist={playlist}
-        repeatMode={repeatMode}
-        setIsAudioPlaying={setIsAudioPlaying}
-      />
     </div>
   );
 }
