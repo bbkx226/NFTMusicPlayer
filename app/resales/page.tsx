@@ -80,14 +80,18 @@ export default function Resales() {
           return resaleItem;
         })
       );
-      setResaleItems(resaleItems.filter(item => item !== undefined) as ResaleItem[]);
-      // Fetch sold resale items by querying MarketItemPurchased events with the seller set as the user
+
       filter = blockchainContract.filters.MarketItemPurchased(null, userAccount, null, null);
       results = await blockchainContract.queryFilter(filter);
       // Filter out the sold items from the resaleItems
       const completedSales = resaleItems.filter(i =>
         results?.some(j => j.args && i && i.itemId.toString() === j.args.nftTokenId.toString())
       );
+      // Filter out the completed sales from resaleItems to get only unsold items
+      const unsoldResaleItems = resaleItems.filter(i => !completedSales.includes(i));
+
+      // Update the state to only include unsold resale items
+      setResaleItems(unsoldResaleItems.filter(item => item !== undefined) as ResaleItem[]);
       setCompletedSales(completedSales.filter(item => item !== undefined) as ResaleItem[]);
       setIsLoading(false);
     }

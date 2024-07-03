@@ -2,13 +2,13 @@
 
 import AWS from "aws-sdk";
 import { ethers } from "ethers";
+import Cookies from "js-cookie";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 import NFTMusicPlayerAbi from "../abi/NFTMusicPlayer.json";
 import NFTMusicPlayerAddress from "../abi/NFTMusicPlayer-address.json";
 import Header from "../components/Header";
 import "./globals.css";
-
 // Extend the Window interface to include the ethereum object
 declare global {
   interface Window {
@@ -68,6 +68,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     if (window.ethereum.request) {
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" }); // Request access to the user's Ethereum accounts
       setUserAccount(accounts[0]); // Set the first account as the current account
+      // Set userAccount in cookies
+      Cookies.set("userAccount", accounts[0], { expires: 7 }); // Expires in 7 days
       const provider = new ethers.providers.Web3Provider(window.ethereum); // Create a new Ethereum provider
       const signer = provider.getSigner(); // Get the signer from the provider
       loadBlockchainContract(signer); // Load the contract
@@ -102,16 +104,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="dark" suppressHydrationWarning={true}>
         <div className="text-center">
-          <Header handleWeb3Connection={handleWeb3Connection} userAccount={userAccount} />
           <div>
             {/* NOTE: 
               The Provider component is used to provide the context value to its child components.
               It accepts a value prop that specifies the data you want to share.
               The value provided by the Provider is accessible to all components that consume the context. 
-            */}
+              */}
             <BlockchainContext.Provider
               value={{ blockchainContract, handleWeb3Connection, isLoading, s3, userAccount }}
             >
+              <Header handleWeb3Connection={handleWeb3Connection} userAccount={userAccount} />
               {isLoading ? (
                 <main className="flex flex-col justify-center items-center py-40">
                   <div className="cube">
