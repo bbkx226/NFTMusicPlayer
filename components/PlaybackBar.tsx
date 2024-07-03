@@ -1,32 +1,49 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { FaPause, FaPlay, FaStepBackward, FaStepForward, FaVolumeUp } from "react-icons/fa";
+import { FaVolumeUp } from "react-icons/fa";
+import {
+  MdOutlinePause,
+  MdOutlinePlayArrow,
+  MdOutlineRepeat,
+  MdOutlineRepeatOne,
+  MdOutlineShuffle,
+  MdOutlineSkipNext,
+  MdOutlineSkipPrevious
+} from "react-icons/md";
 
-import { IItem } from "../app/page";
+import { IItem, repeatModes } from "../app/page";
+import { PlaybackSlider } from "./PlaybackSlider";
 
 interface IPlaybackBarProps {
   audioElement: React.RefObject<HTMLAudioElement>;
-  changeSong: (isNext: boolean) => void;
   currentAudioIndex: number;
-  isAudioPlaying: boolean;
-  marketItems: IItem[];
-  setCurrentAudioIndex: Dispatch<SetStateAction<number>>;
+  handleChangeSong: (isNext: boolean) => void;
+  handleRepeatModeChange: () => void;
+  handleShuffle: () => void;
+  isAudioPlaying: boolean | null;
+  isShuffle: boolean;
+  playlist: IItem[];
+  repeatMode: repeatModes;
   setIsAudioPlaying: Dispatch<SetStateAction<boolean>>;
 }
 
 const PlaybackBar: React.FC<IPlaybackBarProps> = ({
   audioElement,
-  changeSong,
   currentAudioIndex,
+  handleChangeSong,
+  handleRepeatModeChange,
+  handleShuffle,
   isAudioPlaying,
-  marketItems,
+  isShuffle,
+  playlist,
+  repeatMode,
   setIsAudioPlaying
 }) => {
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
   const [volume, setVolume] = useState(50);
 
   useEffect(() => {
@@ -37,7 +54,6 @@ const PlaybackBar: React.FC<IPlaybackBarProps> = ({
         const currentTime = audioElement.current.currentTime;
         const duration = audioElement.current.duration;
         setElapsedTime(currentTime);
-        setTotalTime(duration);
         const progress = (currentTime / duration) * 100;
         setPlaybackPosition(progress);
       }
@@ -45,16 +61,16 @@ const PlaybackBar: React.FC<IPlaybackBarProps> = ({
 
     if (currentAudio) {
       currentAudio.addEventListener("timeupdate", updateProgress);
-      currentAudio.addEventListener("ended", () => changeSong(true));
+      currentAudio.addEventListener("ended", () => handleChangeSong(true));
     }
 
     return () => {
       if (currentAudio) {
         currentAudio.removeEventListener("timeupdate", updateProgress);
-        currentAudio.removeEventListener("ended", () => changeSong(true));
+        currentAudio.removeEventListener("ended", () => handleChangeSong(true));
       }
     };
-  }, [audioElement, changeSong]);
+  }, [audioElement, handleChangeSong]);
 
   useEffect(() => {
     if (audioElement.current) {
@@ -71,10 +87,6 @@ const PlaybackBar: React.FC<IPlaybackBarProps> = ({
       }
     }
   }, [isAudioPlaying, audioElement, currentAudioIndex]);
-
-  const handlePlayPause = () => {
-    setIsAudioPlaying(!isAudioPlaying);
-  };
 
   const handleSliderChange = (value: number[]) => {
     if (audioElement.current) {
@@ -94,40 +106,51 @@ const PlaybackBar: React.FC<IPlaybackBarProps> = ({
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
-  const albumArtUrl = marketItems[currentAudioIndex]?.identicon;
-  const trackTitle = marketItems[currentAudioIndex]?.name;
+  const albumArtUrl = playlist[currentAudioIndex]?.identicon;
+  const trackTitle = playlist[currentAudioIndex]?.name;
+  const artist = playlist[currentAudioIndex]?.artist;
+  const trackDuration = playlist[currentAudioIndex]?.duration;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 text-white p-5 flex flex-col items-center justify-between glass rounded-none">
-      <Slider
-        className="fixed w-full -top-4 left-0"
-        defaultValue={[0]}
-        max={100}
-        min={0}
-        onValueChange={handleSliderChange}
-        step={1}
-        value={[playbackPosition]}
-      />
+    <div className="fixed bottom-0 left-0 right-0 text-white p-5 flex flex-col items-center justify-between glass rounded-none w-screen">
+      <div className="fixed w-full -top-4 left-0">
+        <PlaybackSlider handleSliderChange={handleSliderChange} playbackPosition={playbackPosition} />
+      </div>
       <div className="grid grid-cols-3 w-full">
         <div className="flex justify-start items-center cursor-pointer">
           {albumArtUrl && <Image alt="Album Art" className="card-img-top" height={50} src={albumArtUrl} width={50} />}
-          <div className="ml-4">
+          <div className="ml-4 text-left">
             <div className="text-lg font-semibold">{trackTitle}</div>
+            <div className="text-sm text-gray-400">{artist}</div>
           </div>
         </div>
         <div className="grid grid-cols-3 items-center">
-          <div className="flex justify-end text-lg mr-4">
-            {formatTime(elapsedTime)} / {formatTime(totalTime)}
+          <div className="flex justify-center text-lg mr-4">
+            {formatTime(elapsedTime)} / {formatTime(trackDuration)}
           </div>
-          <div>
-            <Button onClick={() => changeSong(false)} variant="ghost">
-              <FaStepBackward />
+          <div className="flex justify-center items-center">
+            <Button onClick={() => handleChangeSong(false)} variant="ghost">
+              <MdOutlineSkipPrevious className="w-8 h-8" />
             </Button>
-            <Button onClick={handlePlayPause} variant="ghost">
-              {isAudioPlaying ? <FaPause /> : <FaPlay />}
+            <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
+              {isAudioPlaying ? <MdOutlinePause className="w-8 h-8" /> : <MdOutlinePlayArrow className="w-10 h-10" />}
             </Button>
-            <Button onClick={() => changeSong(true)} variant="ghost">
-              <FaStepForward />
+            <Button onClick={() => handleChangeSong(true)} variant="ghost">
+              <MdOutlineSkipNext className="w-8 h-8" />
+            </Button>
+          </div>
+          <div className="flex justify-center items-center">
+            <Button onClick={handleShuffle} variant="ghost">
+              <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
+            </Button>
+            <Button onClick={handleRepeatModeChange} variant="ghost">
+              {repeatMode === repeatModes.NONE ? (
+                <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
+              ) : repeatMode === repeatModes.PLAYLIST ? (
+                <MdOutlineRepeat className="w-6 h-6 text-primary" />
+              ) : (
+                <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
+              )}
             </Button>
           </div>
         </div>

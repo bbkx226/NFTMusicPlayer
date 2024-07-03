@@ -2,7 +2,6 @@
 
 import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
@@ -18,6 +17,8 @@ import {
   MdOutlineSkipPrevious
 } from "react-icons/md";
 
+import PlaybackBar from "../components/PlaybackBar";
+import { PlaybackSlider } from "../components/PlaybackSlider";
 import { useBlockchain } from "./layout";
 
 // Define TypeScript interfaces for token and item data structures
@@ -304,14 +305,7 @@ export default function Home() {
               <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
             </div>
             <div className="flex flex-col w-full items-center justify-center">
-              <Slider
-                defaultValue={[0]}
-                max={100}
-                min={0}
-                onValueChange={handleSliderChange}
-                step={1}
-                value={[playbackPosition]}
-              />
+              <PlaybackSlider handleSliderChange={handleSliderChange} playbackPosition={playbackPosition} />
               {formatTime(elapsedTime)} / {formatTime(totalTime)}
             </div>
             <div className="flex pt-4">
@@ -353,6 +347,18 @@ export default function Home() {
           </div>
         </div>
       </main>
+      <PlaybackBar
+        audioElement={audioElement}
+        currentAudioIndex={currentAudioIndex}
+        handleChangeSong={handleChangeSong}
+        handleRepeatModeChange={handleRepeatModeChange}
+        handleShuffle={handleShuffle}
+        isAudioPlaying={isAudioPlaying}
+        isShuffle={isShuffle}
+        playlist={playlist}
+        repeatMode={repeatMode}
+        setIsAudioPlaying={setIsAudioPlaying}
+      />
     </div>
   );
 }
