@@ -108,28 +108,30 @@ const PlaybackBar: React.FC<IPlaybackBarProps> = ({
         step={1}
         value={[playbackPosition]}
       />
-      <div className="flex items-center justify-between w-full">
-        <div className="flex items-center cursor-pointer">
+      <div className="grid grid-cols-3 w-full">
+        <div className="flex justify-start items-center cursor-pointer">
           {albumArtUrl && <Image alt="Album Art" className="card-img-top" height={50} src={albumArtUrl} width={50} />}
           <div className="ml-4">
             <div className="text-lg font-semibold">{trackTitle}</div>
           </div>
         </div>
-        <div className="flex items-center">
-          <div className="text-lg mr-4">
+        <div className="grid grid-cols-3 items-center">
+          <div className="flex justify-end text-lg mr-4">
             {formatTime(elapsedTime)} / {formatTime(totalTime)}
           </div>
-          <Button onClick={() => changeSong(false)} variant="ghost">
-            <FaStepBackward />
-          </Button>
-          <Button onClick={handlePlayPause} variant="ghost">
-            {isAudioPlaying ? <FaPause /> : <FaPlay />}
-          </Button>
-          <Button onClick={() => changeSong(true)} variant="ghost">
-            <FaStepForward />
-          </Button>
+          <div>
+            <Button onClick={() => changeSong(false)} variant="ghost">
+              <FaStepBackward />
+            </Button>
+            <Button onClick={handlePlayPause} variant="ghost">
+              {isAudioPlaying ? <FaPause /> : <FaPlay />}
+            </Button>
+            <Button onClick={() => changeSong(true)} variant="ghost">
+              <FaStepForward />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center">
+        <div className="flex justify-end items-center">
           <FaVolumeUp className="mr-2" />
           <Slider
             className="w-24"

@@ -1,14 +1,23 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
+import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import { GrChapterNext, GrChapterPrevious, GrPause, GrPlay } from "react-icons/gr";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  MdOutlinePause,
+  MdOutlinePlayArrow,
+  MdOutlineRepeat,
+  MdOutlineRepeatOne,
+  MdOutlineShuffle,
+  MdOutlineSkipNext,
+  MdOutlineSkipPrevious
+} from "react-icons/md";
 
-import PlaybackBar from "../components/PlaybackBar";
 import { useBlockchain } from "./layout";
 
 // Define TypeScript interfaces for token and item data structures
@@ -18,11 +27,19 @@ interface IToken {
 }
 
 export interface IItem {
+  artist: string;
   audio: string;
+  duration: number;
   identicon: string;
   itemId: ethers.BigNumber;
   name: string;
   price: ethers.BigNumber;
+}
+
+export enum repeatModes {
+  NONE,
+  ONE,
+  PLAYLIST
 }
 
 // NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
@@ -34,6 +51,12 @@ export default function Home() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false); // State for audio play status
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0); // State for the current audio index
   const [marketItems, setMarketItems] = useState<IItem[]>([]); // State for marketplace items
+  const [playbackPosition, setPlaybackPosition] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
+  const [playlist, setPlaylist] = useState<IItem[]>([]);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<repeatModes>(repeatModes.NONE); // State for repeat mode
 
   // Function to load marketplace items
   const fetchMarketItems = async () => {
@@ -48,8 +71,10 @@ export default function Home() {
         const metadata = await response.json(); // Parse the JSON response
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`; // Generate identicon based on metadata
         const item: IItem = {
+          artist: metadata.artist ?? "Uknown Artist",
           audio: metadata.audio,
-          identicon,
+          duration: metadata.duration ?? 0,
+          identicon: identicon,
           itemId: token.nftTokenId,
           name: metadata.name,
           price: token.nftPrice
@@ -58,6 +83,7 @@ export default function Home() {
       })
     );
     setMarketItems(fetchedItems);
+    setPlaylist(fetchedItems);
     setIsLoading(false);
   };
 
@@ -69,33 +95,165 @@ export default function Home() {
     }
   };
 
+  // Effect to load marketplace items on component mount
+  useEffect(() => {
+    // Function to load dummy tracks
+    // const fetchTracks = async () => {
+    //   const tracks = await fetch("/tracks.json").then(response => response.json());
+    //   setMarketItems(tracks);
+    //   setPlaylist(tracks);
+    //   setIsLoading(false);
+    // };
+
+    if (marketItems.length === 0) {
+      fetchMarketItems(); // Fetch market items if the list is empty
+      // fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
+    }
+  });
+
   // Function to skip to the next or previous song
-  const changeSong = (isNext: boolean) => {
-    if (isNext) {
-      setCurrentAudioIndex(prevIndex => {
-        let newIndex = prevIndex + 1;
-        if (newIndex > marketItems.length - 1) {
-          newIndex = 0; // Wrap around to the first item if at the end of the list
-        }
-        return newIndex;
-      });
+  const handleChangeSong = useCallback(
+    (isNext: boolean) => {
+      if (isNext) {
+        setCurrentAudioIndex(prevIndex => {
+          let newIndex = prevIndex + 1;
+          if (newIndex > playlist.length - 1) {
+            newIndex = 0; // Wrap around to the first item if at the end of the list
+          }
+          return newIndex;
+        });
+      } else {
+        setCurrentAudioIndex(prevIndex => {
+          let newIndex = prevIndex - 1;
+          if (newIndex < 0) {
+            newIndex = playlist.length - 1; // Wrap around to the last item if at the beginning of the list
+          }
+          return newIndex;
+        });
+      }
+    },
+    [playlist.length]
+  ); // Add an empty array as the second argument
+
+  const shufflePlaylist = (songs: IItem[]) => {
+    const shuffledSongs = [...songs].sort(() => Math.random() - 0.5);
+    return shuffledSongs;
+  };
+
+  const handleShuffle = () => {
+    const newShuffleState = !isShuffle;
+    setIsShuffle(newShuffleState);
+
+    if (newShuffleState) {
+      const shuffledPlaylist = shufflePlaylist([...marketItems]);
+      setPlaylist(shuffledPlaylist);
     } else {
-      setCurrentAudioIndex(prevIndex => {
-        let newIndex = prevIndex - 1;
-        if (newIndex < 0) {
-          newIndex = marketItems.length - 1; // Wrap around to the last item if at the beginning of the list
-        }
-        return newIndex;
-      });
+      setPlaylist([...marketItems]);
+    }
+
+    setCurrentAudioIndex(0);
+  };
+
+  const handleRepeatModeChange = () => {
+    setRepeatMode(prevMode => {
+      switch (prevMode) {
+        case repeatModes.NONE:
+          return repeatModes.PLAYLIST;
+        case repeatModes.PLAYLIST:
+          return repeatModes.ONE;
+        case repeatModes.ONE:
+        default:
+          return repeatModes.NONE;
+      }
+    });
+  };
+
+  useEffect(() => {
+    const currentAudio = audioElement.current; // Capture audioElement.current in a local variable
+
+    const handleEnd = () => {
+      switch (repeatMode) {
+        case repeatModes.NONE:
+          if (currentAudioIndex === playlist.length - 1) {
+            break;
+          } else {
+            setCurrentAudioIndex(prevIndex => {
+              let newIndex = prevIndex + 1;
+              if (newIndex > playlist.length - 1) {
+                newIndex = 0; // Wrap around to the first item if at the end of the list
+              }
+              return newIndex;
+            });
+          }
+          break;
+        case repeatModes.PLAYLIST:
+          setCurrentAudioIndex(prevIndex => {
+            let newIndex = prevIndex + 1;
+            if (newIndex > playlist.length - 1) {
+              newIndex = 0; // Wrap around to the first item if at the end of the list
+            }
+            return newIndex;
+          });
+          break;
+        case repeatModes.ONE:
+          setCurrentAudioIndex(prevIndex => {
+            let newIndex = prevIndex + 1;
+            if (newIndex > playlist.length - 1) {
+              newIndex = 0; // Wrap around to the first item if at the end of the list
+            }
+            return newIndex;
+          });
+          break;
+      }
+    };
+
+    const updateProgress = () => {
+      if (currentAudio) {
+        const currentTime = audioElement.current.currentTime;
+        const duration = audioElement.current.duration;
+        setElapsedTime(currentTime);
+        setTotalTime(duration);
+        const progress = (currentTime / duration) * 100;
+        setPlaybackPosition(progress);
+      }
+    };
+
+    if (currentAudio) {
+      currentAudio.addEventListener("timeupdate", updateProgress);
+      currentAudio.addEventListener("ended", handleEnd);
+    }
+
+    return () => {
+      if (currentAudio) {
+        currentAudio.removeEventListener("timeupdate", updateProgress);
+        currentAudio.removeEventListener("ended", handleEnd);
+      }
+    };
+  }, [audioElement, handleChangeSong, repeatMode, currentAudioIndex, playlist.length]);
+
+  useEffect(() => {
+    if (audioElement.current) {
+      if (isAudioPlaying) {
+        audioElement.current.play();
+      } else {
+        audioElement.current.pause();
+      }
+    }
+  }, [isAudioPlaying, audioElement, currentAudioIndex]);
+
+  const handleSliderChange = (value: number[]) => {
+    if (audioElement.current) {
+      const newTime = (value[0] / 100) * audioElement.current.duration;
+      audioElement.current.currentTime = newTime;
+      setPlaybackPosition(value[0]);
     }
   };
 
-  // Effect to load marketplace items on component mount
-  useEffect(() => {
-    if (marketItems.length === 0) {
-      fetchMarketItems(); // Fetch market items if the list is empty
-    }
-  });
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
 
   // Render loading message if still loading
   if (isLoading)
@@ -105,71 +263,96 @@ export default function Home() {
       </main>
     );
 
+  // Display a message if there are no items in the market
+  if (marketItems.length === 0) {
+    return (
+      <main className="p-4">
+        <h2>No listed assets</h2>
+      </main>
+    );
+  }
+
   return (
-    <div className="container mx-auto mt-10">
-      {marketItems.length > 0 ? (
-        <main className="flex justify-between gap-4" role="main">
-          <div className="sidebar glass p-8 space-y-4">
-            <div className="text-primary text-base font-bold">
-              Up Next ({currentAudioIndex + 1} of {marketItems.length})
-            </div>
-            {marketItems.map((item, idx) => (
-              <div className="text-left" key={idx}>
-                <hr className="my-2" />
-                {item.name}
-              </div>
-            ))}
+    <div className="container mx-auto mt-5">
+      <audio ref={audioElement} src={playlist[currentAudioIndex]?.audio}></audio>
+      <main className="grid grid-cols-7" role="main">
+        <div className="col-span-2">
+          <Playlist
+            currentAudioIndex={currentAudioIndex}
+            handleRepeatModeChange={handleRepeatModeChange}
+            handleShuffle={handleShuffle}
+            isShuffle={isShuffle}
+            repeatMode={repeatMode}
+            setCurrentAudioIndex={setCurrentAudioIndex}
+            tracks={playlist}
+          />
+        </div>
+
+        <div className="card col-span-3 space-y-10 px-4 text-primary">
+          <div className="flex items-center justify-center pt-2">
+            <Image
+              alt=""
+              className="card-img-top"
+              height={300}
+              src={playlist[currentAudioIndex]?.identicon}
+              width={300}
+            />
           </div>
-          <audio ref={audioElement} src={marketItems[currentAudioIndex].audio}></audio>
-          <div className="card space-y-10 glass p-8 min-w-5xl max-w-5xl">
-            <div className="card-body text-primary flex">
-              <Image
-                alt=""
-                className="card-img-top"
-                height={480}
-                src={marketItems[currentAudioIndex].identicon}
-                width={480}
+          <div className="flex flex-col items-center justify-between px-4">
+            <div className="h-36 flex flex-col justify-center">
+              <div className="text-4xl font-bold">{playlist[currentAudioIndex]?.name}</div>
+              <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
+            </div>
+            <div className="flex flex-col w-full items-center justify-center">
+              <Slider
+                defaultValue={[0]}
+                max={100}
+                min={0}
+                onValueChange={handleSliderChange}
+                step={1}
+                value={[playbackPosition]}
               />
-              <div className="container flex flex-col items-center justify-between">
-                <div className="text-7xl font-bold">{marketItems[currentAudioIndex].name}</div>
-                {/* TODO: change the slider here */}
-                <Slider className="w-full top-0 left-0" defaultValue={[0]} max={100} min={0} step={1} />
-                <div className="flex px-4 scale-150">
-                  <Button onClick={() => changeSong(false)} variant="ghost">
-                    <GrChapterPrevious />
-                  </Button>
-                  <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
-                    {isAudioPlaying ? <GrPause /> : <GrPlay />}
-                  </Button>
-                  <Button onClick={() => changeSong(true)} variant="ghost">
-                    <GrChapterNext />
-                  </Button>
-                </div>
-              </div>
+              {formatTime(elapsedTime)} / {formatTime(totalTime)}
             </div>
-            <div className="card-footer">
-              <div className="d-grid my-1">
-                <Button onClick={() => purchaseItem(marketItems[currentAudioIndex])} variant="outline">
-                  {`Buy for ${ethers.utils.formatEther(marketItems[currentAudioIndex].price)} ETH`}
-                </Button>
-              </div>
+            <div className="flex pt-4">
+              <Button onClick={handleShuffle} variant="ghost">
+                <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
+              </Button>
+              <Button onClick={() => handleChangeSong(false)} variant="ghost">
+                <MdOutlineSkipPrevious className="w-8 h-8" />
+              </Button>
+              <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
+                {isAudioPlaying ? <MdOutlinePause className="w-8 h-8" /> : <MdOutlinePlayArrow className="w-10 h-10" />}
+              </Button>
+              <Button onClick={() => handleChangeSong(true)} variant="ghost">
+                <MdOutlineSkipNext className="w-8 h-8" />
+              </Button>
+              <Button onClick={handleRepeatModeChange} variant="ghost">
+                {repeatMode === repeatModes.NONE ? (
+                  <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
+                ) : repeatMode === repeatModes.PLAYLIST ? (
+                  <MdOutlineRepeat className="w-6 h-6 text-primary" />
+                ) : (
+                  <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
+                )}
+              </Button>
             </div>
           </div>
-        </main>
-      ) : (
-        <main className="p-4">
-          <h2>No listed assets</h2>
-        </main>
-      )}
-      <PlaybackBar
-        audioElement={audioElement}
-        changeSong={changeSong}
-        currentAudioIndex={currentAudioIndex}
-        isAudioPlaying={isAudioPlaying}
-        marketItems={marketItems}
-        setCurrentAudioIndex={setCurrentAudioIndex}
-        setIsAudioPlaying={setIsAudioPlaying}
-      />
+        </div>
+
+        <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
+          <div className="text-primary text-base font-bold">Buy This Song</div>
+          <div className="text-left">
+            <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
+            <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
+              {`Buy for ${ethers.utils.formatEther(playlist[currentAudioIndex]?.price)} ETH`}
+            </Button>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
