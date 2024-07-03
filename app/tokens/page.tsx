@@ -14,6 +14,7 @@ import { Swiper, SwiperClass, SwiperSlide } from "swiper/react";
 import { useBlockchain } from "../layout";
 
 interface TokenItem {
+  artist: string;
   audio: string;
   identicon: string;
   itemId: ethers.BigNumber;
@@ -39,27 +40,38 @@ export default function Tokens() {
   const [resellNFTPrice, setresellNFTPrice] = useState<number | readonly string[] | string | undefined>(undefined);
   const tokenswiper = useRef<SwiperClass | null>(null);
 
-  const { blockchainContract } = useBlockchain();
+  const { blockchainContract, s3 } = useBlockchain();
 
   // Function to load user's tokens
   const loadUserTokens = async () => {
-    if (blockchainContract) {
+    if (blockchainContract && s3) {
       // Get all unsold items/tokens
       const results = await blockchainContract.fetchUserNFTs();
       const userTokens = await Promise.all(
         results.map(async (i: ResultItem) => {
-          // get uri url from blockchainContract
-          const uri = await blockchainContract.tokenURI(i.nftTokenId);
-          // use uri to fetch the nft metadata stored on ipfs
-          const response = await fetch(uri + ".json");
-          const metadata = await response.json();
-          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
+          let metadata = null;
+          if (blockchainContract !== null && blockchainContract !== undefined) {
+            const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
+            const uri = await blockchainContract.tokenURI(i.nftTokenId);
+            const url = new URL(uri);
+            const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
+
+            try {
+              const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
+              metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
+            } catch (error) {
+              console.error("Error fetching metadata from S3:", error);
+            }
+          }
+
+          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price + metadata.artist, 330).toString()}`;
           // define item object
           const tokenItem: TokenItem = {
+            artist: metadata?.artist ?? "Unknown Artist",
             audio: metadata.audio,
             identicon,
             itemId: i.nftTokenId,
-            name: metadata.name,
+            name: metadata?.name,
             price: i.nftPrice,
             resellPrice: null
           };
@@ -107,11 +119,11 @@ export default function Tokens() {
 
     if (type === "token") {
       // Trigger the shiny effect
-      const slide = document.querySelectorAll(".glass-hover") [index];
+      const slide = document.querySelectorAll(".glass-hover")[index];
       slide.classList.remove("animate");
       // Use requestAnimationFrame to force reflow
       requestAnimationFrame(() => {
-        slide.classList.add("animate");  // Add the class to start the animation
+        slide.classList.add("animate"); // Add the class to start the animation
       });
     }
   };
@@ -152,7 +164,7 @@ export default function Tokens() {
                 <h2 className="text-2xl font-semibold">My NFT Music</h2>
                 <span className="text-base font-normal text-zinc-300">
                   - Discover and Enjoy the Exclusive Music Tokens You Own -
-                </span>              
+                </span>
               </div>
               <div className="flex items-center h-128 w-full px-16 py-8 relative">
                 {userTokens && userTokens.length > 0 && (
@@ -173,7 +185,7 @@ export default function Tokens() {
                   grabCursor={true}
                   loop={false}
                   modules={[EffectCoverflow, Pagination, Navigation]}
-                  navigation={{ nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev"}}
+                  navigation={{ nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" }}
                   onSwiper={ref => {
                     tokenswiper.current = ref;
                   }}
@@ -181,8 +193,8 @@ export default function Tokens() {
                   slidesPerView={"auto"}
                 >
                   {userTokens.map((item, idx) => (
-                    <SwiperSlide 
-                      className="relative hover:shadow-cyan-600 shadow-lg glass grid grid-rows-1 rounded-lg w-148 h-168 md:w-72 md:h-90 lg:w-92 lg:h-104 glass-hover" 
+                    <SwiperSlide
+                      className="relative hover:shadow-cyan-600 shadow-lg glass grid grid-rows-1 rounded-lg w-148 h-168 md:w-72 md:h-90 lg:w-92 lg:h-104 glass-hover"
                       key={idx}
                       onClick={() => handleSlideItemClick(idx, "token")}
                     >
@@ -195,9 +207,17 @@ export default function Tokens() {
                           src={item.audio}
                         ></audio>
                         <div className="card">
-                          <Image alt="" className="w-full h-64 object-cover rounded-t-lg" height={120} src={item.identicon} width={120} />
+                          <Image
+                            alt=""
+                            className="w-full h-64 object-cover rounded-t-lg"
+                            height={120}
+                            src={item.identicon}
+                            width={120}
+                          />
                           <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">{item.name}</div>
+                            <div className="font-bold text-xl mb-2">
+                              {item.name} - {item.artist}
+                            </div>
                             <div className=" px-4">
                               <button
                                 className="btn btn-secondary"
@@ -238,8 +258,8 @@ export default function Tokens() {
                             </div>
                             <p className="mt-2">{ethers.utils.formatEther(item.price)} ETH</p>
                           </div>
-                          <div className="px-6 pt-4 pb-2"> 
-                            <div className="mb-4 flex space-x-2">                 
+                          <div className="px-6 pt-4 pb-2">
+                            <div className="mb-4 flex space-x-2">
                               <input
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 onChange={e => {
@@ -253,17 +273,16 @@ export default function Tokens() {
                               />
                               <button
                                 className="glow-button"
-                                
                                 //className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                                 onClick={() => resellNFT(item)}
                               >
                                 <span>Resell</span>
                               </button>
-                            </div>   
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </SwiperSlide>  
+                    </SwiperSlide>
                   ))}
                 </Swiper>
                 {userTokens && userTokens.length > 0 && (
@@ -273,7 +292,7 @@ export default function Tokens() {
                 )}
               </div>
             </div>
-          </div> 
+          </div>
         ) : (
           <main className="flex flex-col justify-center items-center py-40">
             <div className="cube">

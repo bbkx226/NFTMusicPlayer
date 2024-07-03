@@ -4,7 +4,6 @@ import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import AWS from "aws-sdk";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
@@ -43,7 +42,7 @@ export enum repeatModes {
 }
 // NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
 export default function Home() {
-  const { blockchainContract } = useBlockchain(); // Destructure blockchainContract from useBlockchain hook
+  const { blockchainContract, s3 } = useBlockchain(); // Destructure blockchainContract from useBlockchain hook
 
   const audioElement = useRef<HTMLAudioElement>(null); // Create a ref for the audio element
   const [isLoading, setIsLoading] = useState(true); // State for loading status
@@ -57,69 +56,62 @@ export default function Home() {
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<repeatModes>(repeatModes.NONE); // State for repeat mode
 
-  AWS.config.update({
-    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID_ENV,
-    region: "ap-southeast-1",
-    secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY_ENV
-  });
-
-  const s3 = new AWS.S3();
-
   // Function to load marketplace items
   const fetchMarketItems = async () => {
-    const tokens: IToken[] = await (blockchainContract && blockchainContract.fetchUnsoldNFTs());
-    const fetchedItems: IItem[] = await Promise.all(
-      tokens.map(async (token: IToken) => {
-        let metadata = null;
-        if (blockchainContract !== null && blockchainContract !== undefined) {
-          const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
-          const uri = await blockchainContract.tokenURI(token.nftTokenId);
-          const url = new URL(uri);
-          const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
+    if (s3) {
+      const tokens: IToken[] = await (blockchainContract && blockchainContract.fetchUnsoldNFTs());
+      const fetchedItems: IItem[] = await Promise.all(
+        tokens.map(async (token: IToken) => {
+          let metadata = null;
+          if (blockchainContract !== null && blockchainContract !== undefined) {
+            const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
+            const uri = await blockchainContract.tokenURI(token.nftTokenId);
+            const url = new URL(uri);
+            const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
 
-          try {
-            const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
-            metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
-          } catch (error) {
-            console.error("Error fetching metadata from S3:", error);
+            try {
+              const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
+              metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
+            } catch (error) {
+              console.error("Error fetching metadata from S3:", error);
+            }
           }
-        }
 
-        console.log(metadata);
-        let audioDuration = 0;
-        if (metadata && metadata.audio) {
-          try {
-            audioDuration = await new Promise((resolve, reject) => {
-              const audio = new Audio(metadata.audio);
-              audio.addEventListener("loadedmetadata", () => {
-                resolve(audio.duration);
+          let audioDuration = 0;
+          if (metadata && metadata.audio) {
+            try {
+              audioDuration = await new Promise((resolve, reject) => {
+                const audio = new Audio(metadata.audio);
+                audio.addEventListener("loadedmetadata", () => {
+                  resolve(audio.duration);
+                });
+                audio.addEventListener("error", () => {
+                  reject(new Error("Failed to load audio"));
+                });
               });
-              audio.addEventListener("error", () => {
-                reject(new Error("Failed to load audio"));
-              });
-            });
-          } catch (error) {
-            console.error("Error fetching audio duration:", error);
-            audioDuration = 0; // Fallback duration in case of error
+            } catch (error) {
+              console.error("Error fetching audio duration:", error);
+              audioDuration = 0; // Fallback duration in case of error
+            }
           }
-        }
 
-        const identicon = `data:image/png;base64,${new Identicon(metadata ? metadata.name + metadata.price + metadata.artists : "", 330).toString()}`; // Generate identicon based on metadata
-        const item: IItem = {
-          artist: metadata?.artist ?? "Unknown Artist",
-          audio: metadata?.audio,
-          duration: audioDuration,
-          identicon: identicon,
-          itemId: token.nftTokenId,
-          name: metadata?.name,
-          price: token.nftPrice
-        };
-        return item;
-      })
-    );
-    setMarketItems(fetchedItems);
-    setPlaylist(fetchedItems);
-    setIsLoading(false);
+          const identicon = `data:image/png;base64,${new Identicon(metadata ? metadata.name + metadata.price + metadata.artists : "", 330).toString()}`; // Generate identicon based on metadata
+          const item: IItem = {
+            artist: metadata?.artist ?? "Unknown Artist",
+            audio: metadata?.audio,
+            duration: audioDuration,
+            identicon,
+            itemId: token.nftTokenId,
+            name: metadata?.name,
+            price: token.nftPrice
+          };
+          return item;
+        })
+      );
+      setMarketItems(fetchedItems);
+      setPlaylist(fetchedItems);
+      setIsLoading(false);
+    }
   };
 
   // Function to buy a marketplace item
@@ -293,16 +285,32 @@ export default function Home() {
   // Render loading message if still loading
   if (isLoading)
     return (
-      <main className="p-4">
-        <h2>Loading...</h2>
+      <main className="flex flex-col justify-center items-center py-40">
+        <div className="cube">
+          <div className="face front"></div>
+          <div className="face back"></div>
+          <div className="face left"></div>
+          <div className="face right"></div>
+          <div className="face top"></div>
+          <div className="face bottom"></div>
+        </div>
+        <h2 className="text-3xl font-bold moving-text mt-20">Loading ...</h2>
       </main>
     );
 
   // Display a message if there are no items in the market
   if (marketItems.length === 0) {
     return (
-      <main className="p-4">
-        <h2>No listed assets</h2>
+      <main className="flex flex-col justify-center items-center py-40">
+        <div className="cube">
+          <div className="face front"></div>
+          <div className="face back"></div>
+          <div className="face left"></div>
+          <div className="face right"></div>
+          <div className="face top"></div>
+          <div className="face bottom"></div>
+        </div>
+        <h2 className="text-3xl font-bold moving-text mt-20">No Listed Assets</h2>
       </main>
     );
   }

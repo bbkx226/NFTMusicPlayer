@@ -34,8 +34,7 @@ async function fetchPricesFromJsonFiles() {
         Key: fileKey
       };
       const fileData = await s3.getObject(fileParams).promise();
-      const fileContent = JSON.parse(fileData.Body.toString("utf-8")); // Assuming the file content is UTF-8 encoded
-      console.log(fileContent);
+      const fileContent = JSON.parse(fileData.Body.toString("utf-8"));
       if (fileContent.price) {
         prices.push(toWei(fileContent.price)); // Push the price into the prices array
       }

@@ -15,6 +15,7 @@ import { Swiper, SwiperClass, SwiperSlide } from "swiper/react";
 import { useBlockchain } from "../layout";
 
 interface ResaleItem {
+  artist: string;
   audio: string;
   identicon: string;
   itemId: ethers.BigNumber;
@@ -23,7 +24,7 @@ interface ResaleItem {
 }
 
 export default function Resales() {
-  const { blockchainContract, userAccount } = useBlockchain();
+  const { blockchainContract, s3, userAccount } = useBlockchain();
 
   // const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [resaleItems, setResaleItems] = useState<ResaleItem[]>([]);
@@ -38,7 +39,7 @@ export default function Resales() {
   const [totalSlides, setTotalSlides] = useState(0);
 
   const loadUserResales = async () => {
-    if (blockchainContract) {
+    if (blockchainContract && s3) {
       // Fetch resale items from marketplace by querying MarketItemRelisted events with the seller set as the user
       let filter = blockchainContract?.filters.MarketItemRelisted(null, userAccount, null);
       let results = await blockchainContract?.queryFilter(filter);
@@ -50,14 +51,26 @@ export default function Resales() {
           if (!args) {
             return;
           }
-          // get uri url from NFT blockchainContract
-          const uri = await blockchainContract?.tokenURI(args.nftTokenId);
-          // use uri to fetch the NFT metadata stored on IPFS
-          const response = await fetch(uri + ".json");
-          const metadata = await response.json();
-          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`;
+
+          let metadata = null;
+          if (blockchainContract !== null && blockchainContract !== undefined) {
+            const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
+            const uri = await blockchainContract.tokenURI(args.nftTokenId);
+            const url = new URL(uri);
+            const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
+
+            try {
+              const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
+              metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
+            } catch (error) {
+              console.error("Error fetching metadata from S3:", error);
+            }
+          }
+
+          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price + metadata.artist, 330).toString()}`;
           // define listed item object
           const resaleItem: ResaleItem = {
+            artist: metadata?.artist ?? "Unknown Artist",
             audio: metadata?.audio ?? "",
             identicon,
             itemId: args?.nftTokenId ?? 0,
@@ -217,7 +230,9 @@ export default function Resales() {
                         />
                       </div>
                       <div className="p-4 grid grid-rows-3">
-                        <p className="flex items-center justify-center text-2xl font-bold row-span-2">{item.name}</p>
+                        <p className="flex items-center justify-center text-2xl font-bold row-span-2">
+                          {item.name} - {item.artist}
+                        </p>
                         <div className="mt-2 flex items-center justify-center">
                           <p className="">{ethers.utils.formatEther(item.price)} ETH</p>
                         </div>
@@ -285,7 +300,9 @@ export default function Resales() {
                           />
                         </div>
                         <div className="p-4 grid grid-rows-3">
-                          <p className="flex items-center justify-center text-2xl font-bold row-span-2">{item.name}</p>
+                          <p className="flex items-center justify-center text-2xl font-bold row-span-2">
+                            {item.name} - {item.artist}
+                          </p>
                           <div className="mt-2 flex items-center justify-center">
                             <p className="">{ethers.utils.formatEther(item.price)} ETH</p>
                           </div>
