@@ -6,24 +6,22 @@ require("dotenv").config();
 // Convert a number to Wei
 const toWei = num => ethers.utils.parseEther(num.toString());
 
-const s3BucketUrl = process.env.NEXT_S3_BUCKET_URI_ENV;
-
 AWS.config.update({
-  accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID_ENV,
-  secretAccessKey: process.env.NEXT_SECRET_ACCESS_KEY_ENV,
+  accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID_ENV,
+  secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY_ENV,
   region: "ap-southeast-1"
 });
 
 const s3 = new AWS.S3();
 
-async function fetchPricesFromJsonFiles(bucketUrl) {
-  const bucketName = bucketUrl.replace("https://", "").split(".")[0]; // Extract bucket name from URL
+async function fetchPricesFromJsonFiles() {
   let prices = []; // Initialize prices array
+  const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV;
 
   try {
     const params = {
       Bucket: bucketName,
-      Prefix: "musics/" // Assuming all music JSON files are stored under the 'musics/' directory
+      Prefix: "database/"
     };
 
     const data = await s3.listObjectsV2(params).promise();
@@ -36,7 +34,7 @@ async function fetchPricesFromJsonFiles(bucketUrl) {
         Key: fileKey
       };
       const fileData = await s3.getObject(fileParams).promise();
-      const fileContent = JSON.parse(fileData.Body.toString("utf-8")); // Assuming the file content is UTF-8 encoded
+      const fileContent = JSON.parse(fileData.Body.toString("utf-8"));
       if (fileContent.price) {
         prices.push(toWei(fileContent.price)); // Push the price into the prices array
       }
@@ -69,7 +67,7 @@ function saveContractToFile(contract, name) {
 async function main() {
   let royaltyFee = toWei(0.01);
 
-  const prices = await fetchPricesFromJsonFiles(s3BucketUrl);
+  const prices = await fetchPricesFromJsonFiles();
 
   let deploymentFees = toWei(prices.length * 0.01);
 

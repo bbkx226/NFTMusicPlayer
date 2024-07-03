@@ -1,5 +1,6 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
+import AWS from "aws-sdk";
 import { ethers } from "ethers";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
@@ -20,7 +21,12 @@ interface ContextProps {
   blockchainContract: ethers.Contract; // Ethereum contract instance
   handleWeb3Connection: () => Promise<void>; // Function to handle connection to the Ethereum network
   isLoading: boolean; // Loading state
+  s3: AWS.S3;
   userAccount: null | string; // Ethereum account address
+}
+
+interface ExtendedExternalProvider extends ethers.providers.ExternalProvider {
+  on?: (eventName: string, listener: (...args: unknown[]) => void) => void;
 }
 
 // NOTE:
@@ -41,6 +47,14 @@ const dummyContract = new ethers.Contract(
   new ethers.utils.Interface([]), // This creates a new Ethereum contract interface. It's currently empty because the actual contract hasn't been loaded yet.
   ethers.getDefaultProvider() // This gets the default Ethereum provider. It's used to interact with the Ethereum network.
 );
+
+AWS.config.update({
+  accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID_ENV,
+  region: "ap-southeast-1",
+  secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY_ENV
+});
+
+const s3 = new AWS.S3();
 
 // NOTE: In Next.js 14, a root layout is a UI component shared between multiple pages in an application. It allows you to define a common structure and appearance for a group of pages, reducing redundancy and promoting code reusability. The root layout is mandatory for every Next.js app and is often referred to as the “RootLayout.”
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -74,6 +88,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     }
   });
 
+  useEffect(() => {
+    const ethereum = window.ethereum as ExtendedExternalProvider;
+    if (ethereum && ethereum.on) {
+      ethereum.on("accountsChanged", () => {
+        window.location.reload();
+      });
+    }
+  }, []);
+
   // Render the component
   return (
     <html lang="en">
@@ -86,12 +109,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               It accepts a value prop that specifies the data you want to share.
               The value provided by the Provider is accessible to all components that consume the context. 
             */}
-            <BlockchainContext.Provider value={{ blockchainContract, handleWeb3Connection, isLoading, userAccount }}>
+            <BlockchainContext.Provider
+              value={{ blockchainContract, handleWeb3Connection, isLoading, s3, userAccount }}
+            >
               {isLoading ? (
-                <div className="flex justify-center items-center h-screen">
-                  <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-                  <p className="mx-3 my-0">Awaiting Metamask Connection...</p>
-                </div>
+                <main className="flex flex-col justify-center items-center py-40">
+                  <div className="cube">
+                    <div className="face front"></div>
+                    <div className="face back"></div>
+                    <div className="face left"></div>
+                    <div className="face right"></div>
+                    <div className="face top"></div>
+                    <div className="face bottom"></div>
+                  </div>
+                  <h2 className="text-3xl font-bold moving-text mt-20">Awaiting Metamask Connection...</h2>
+                </main>
               ) : (
                 children
               )}
