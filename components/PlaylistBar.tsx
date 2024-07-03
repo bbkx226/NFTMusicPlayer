@@ -70,7 +70,7 @@ export const PlaylistBar: React.FC<PlaylistBarProps> = ({
           </Button>
         </div>
       </div>
-      <ScrollArea className="h-[500px]">
+      <ScrollArea className="h-[520px]">
         <div className="grid gap-4 pr-4">
           {tracks.map((item, idx) => (
             <div
