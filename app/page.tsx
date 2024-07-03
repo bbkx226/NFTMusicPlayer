@@ -4,6 +4,7 @@ import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import AWS from "aws-sdk";
 import { ethers } from "ethers";
 import Identicon from "identicon.js";
 import Image from "next/image";
@@ -19,7 +20,6 @@ import {
 } from "react-icons/md";
 
 import { useBlockchain } from "./layout";
-
 // Define TypeScript interfaces for token and item data structures
 interface IToken {
   nftPrice: ethers.BigNumber;
@@ -41,7 +41,6 @@ export enum repeatModes {
   ONE,
   PLAYLIST
 }
-
 // NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
 export default function Home() {
   const { blockchainContract } = useBlockchain(); // Destructure blockchainContract from useBlockchain hook
@@ -58,19 +57,37 @@ export default function Home() {
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<repeatModes>(repeatModes.NONE); // State for repeat mode
 
+  AWS.config.update({
+    accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID_ENV,
+    region: "ap-southeast-1",
+    secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY_ENV
+  });
+
+  const s3 = new AWS.S3();
+
   // Function to load marketplace items
   const fetchMarketItems = async () => {
-    const tokens: IToken[] = await (blockchainContract && blockchainContract.fetchUnsoldNFTs()); // Fetch unsold tokens from the blockchain
+    const tokens: IToken[] = await (blockchainContract && blockchainContract.fetchUnsoldNFTs());
     const fetchedItems: IItem[] = await Promise.all(
       tokens.map(async (token: IToken) => {
-        const uri =
-          blockchainContract !== null && blockchainContract !== undefined
-            ? await blockchainContract.tokenURI(token.nftTokenId) // Fetch token URI
-            : null;
-        const response = await fetch(uri + ".json"); // Fetch metadata JSON from the URI
-        const metadata = await response.json(); // Parse the JSON response
+        let metadata = null;
+        if (blockchainContract !== null && blockchainContract !== undefined) {
+          const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
+          const uri = await blockchainContract.tokenURI(token.nftTokenId);
+          const url = new URL(uri);
+          const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
+
+          try {
+            const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
+            metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
+          } catch (error) {
+            console.error("Error fetching metadata from S3:", error);
+          }
+        }
+
+        console.log(metadata);
         let audioDuration = 0;
-        if (metadata.audio) {
+        if (metadata && metadata.audio) {
           try {
             audioDuration = await new Promise((resolve, reject) => {
               const audio = new Audio(metadata.audio);
@@ -87,14 +104,14 @@ export default function Home() {
           }
         }
 
-        const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`; // Generate identicon based on metadata
+        const identicon = `data:image/png;base64,${new Identicon(metadata ? metadata.name + metadata.price + metadata.artists : "", 330).toString()}`; // Generate identicon based on metadata
         const item: IItem = {
-          artist: metadata.artist ?? "Uknown Artist",
-          audio: metadata.audio,
-          duration: audioDuration ?? 0,
+          artist: metadata?.artist ?? "Unknown Artist",
+          audio: metadata?.audio,
+          duration: audioDuration,
           identicon: identicon,
           itemId: token.nftTokenId,
-          name: metadata.name,
+          name: metadata?.name,
           price: token.nftPrice
         };
         return item;
