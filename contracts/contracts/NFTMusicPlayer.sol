@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract NFTMusicPlayer is ERC721("DAppFi", "DAPP"), Ownable {
-    string public nftBaseURI = "https://bafybeidhjjbjonyqcahuzlpt7sznmh4xrlbspa3gstop5o47l6gsiaffee.ipfs.nftstorage.link/";
+    string public nftBaseURI = "https://bcd-music-nfts.s3.ap-southeast-1.amazonaws.com/musics/";
     string public nftExtension = ".json";
     address public artistAddress;
     uint256 public royaltyFeePercentage;

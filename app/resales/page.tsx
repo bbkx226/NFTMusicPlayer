@@ -127,7 +127,7 @@ export default function Resales() {
     if (listedSwiper.current) {
       setTotalSlides(listedSwiper.current.slides.length);
     }
-  }, [listedSwiper.current]);
+  }, []);
 
   // useEffect(() => {
   //   const handleMouseMove = (e: MouseEvent) => {
@@ -307,7 +307,7 @@ export default function Resales() {
             </div>
           </div>
         ) : (
-          <main className="flex flex-col justify-center items-center min-h-screen">
+          <main className="flex flex-col justify-center items-center py-40">
             <div className="cube">
               <div className="face front"></div>
               <div className="face back"></div>

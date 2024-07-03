@@ -275,7 +275,7 @@ export default function Tokens() {
             </div>
           </div> 
         ) : (
-          <main className="flex flex-col justify-center items-center min-h-screen">
+          <main className="flex flex-col justify-center items-center py-40">
             <div className="cube">
               <div className="face front"></div>
               <div className="face back"></div>
