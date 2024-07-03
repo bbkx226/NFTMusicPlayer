@@ -1,6 +1,5 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
-import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
@@ -17,8 +16,8 @@ import {
   MdOutlineSkipPrevious
 } from "react-icons/md";
 
-import PlaybackBar from "../components/PlaybackBar";
 import { PlaybackSlider } from "../components/PlaybackSlider";
+import { PlaylistBar } from "../components/PlaylistBar";
 import { useBlockchain } from "./layout";
 
 // Define TypeScript interfaces for token and item data structures
@@ -132,6 +131,7 @@ export default function Home() {
           return newIndex;
         });
       }
+      setPlaybackPosition(0);
     },
     [playlist.length]
   ); // Add an empty array as the second argument
@@ -278,7 +278,7 @@ export default function Home() {
       <audio ref={audioElement} src={playlist[currentAudioIndex]?.audio}></audio>
       <main className="grid grid-cols-7" role="main">
         <div className="col-span-2">
-          <Playlist
+          <PlaylistBar
             currentAudioIndex={currentAudioIndex}
             handleRepeatModeChange={handleRepeatModeChange}
             handleShuffle={handleShuffle}

@@ -11,12 +11,12 @@ import Image from "next/image";
 import React, { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { MdOutlineRepeat, MdOutlineRepeatOne, MdOutlineShuffle } from "react-icons/md";
 
-import { IItem, repeatModes } from "../../../app/page";
-import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { IItem, repeatModes } from "../app/page";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "../src/components/ui/tooltip";
 
 import Logo from "/public/logo.png";
 
-interface PlaylistProps {
+interface PlaylistBarProps {
   currentAudioIndex: number;
   handleRepeatModeChange: () => void;
   handleShuffle: () => void;
@@ -26,7 +26,7 @@ interface PlaylistProps {
   tracks: IItem[];
 }
 
-export const Playlist: React.FC<PlaylistProps> = ({
+export const PlaylistBar: React.FC<PlaylistBarProps> = ({
   currentAudioIndex,
   handleRepeatModeChange,
   handleShuffle,
