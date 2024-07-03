@@ -158,6 +158,7 @@ export default function Home() {
   useEffect(() => {
     const currentAudio = audioElement.current; // Capture audioElement.current in a local variable
 
+    // Function to handle song end event
     const handleEnd = () => {
       if (repeatMode === repeatModes.ONE && currentAudio) {
         currentAudio.currentTime = 0;
@@ -171,6 +172,7 @@ export default function Home() {
         handleChangeSong(true);
     };
 
+    // Function to update playback position
     const updateProgress = () => {
       if (currentAudio) {
         const currentTime = audioElement.current.currentTime;
@@ -205,6 +207,7 @@ export default function Home() {
     }
   }, [isAudioPlaying, currentAudioIndex]);
 
+  // Function to handle slider changes and update playback position
   const handleSliderChange = (value: number[]) => {
     if (audioElement.current) {
       const newTime = (value[0] / 100) * audioElement.current.duration;
@@ -213,6 +216,7 @@ export default function Home() {
     }
   };
 
+  // Function to format song elapsed time and total duration from seconds to mm:ss format
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
