@@ -114,39 +114,24 @@ export default function Home() {
   // Function to skip to the next or previous song
   const handleChangeSong = useCallback(
     (isNext: boolean) => {
-      if (isNext) {
-        setCurrentAudioIndex(prevIndex => {
-          let newIndex = prevIndex + 1;
-          if (newIndex > playlist.length - 1) {
-            newIndex = 0; // Wrap around to the first item if at the end of the list
-          }
-          return newIndex;
-        });
-      } else {
-        setCurrentAudioIndex(prevIndex => {
-          let newIndex = prevIndex - 1;
-          if (newIndex < 0) {
-            newIndex = playlist.length - 1; // Wrap around to the last item if at the beginning of the list
-          }
-          return newIndex;
-        });
-      }
+      setCurrentAudioIndex(prevIndex => {
+        let newIndex = isNext ? prevIndex + 1 : prevIndex - 1;
+        if (newIndex < 0) newIndex = playlist.length - 1;
+        else if (newIndex >= playlist.length) newIndex = 0;
+        return newIndex;
+      });
       setPlaybackPosition(0);
     },
     [playlist.length]
   ); // Add an empty array as the second argument
 
-  const shufflePlaylist = (songs: IItem[]) => {
-    const shuffledSongs = [...songs].sort(() => Math.random() - 0.5);
-    return shuffledSongs;
-  };
-
+  // Function to shuffle the playlist
   const handleShuffle = () => {
     const newShuffleState = !isShuffle;
     setIsShuffle(newShuffleState);
 
     if (newShuffleState) {
-      const shuffledPlaylist = shufflePlaylist([...marketItems]);
+      const shuffledPlaylist = [...marketItems].sort(() => Math.random() - 0.5);
       setPlaylist(shuffledPlaylist);
     } else {
       setPlaylist([...marketItems]);
@@ -155,6 +140,7 @@ export default function Home() {
     setCurrentAudioIndex(0);
   };
 
+  // Function to change the repeat mode
   const handleRepeatModeChange = () => {
     setRepeatMode(prevMode => {
       switch (prevMode) {
@@ -173,39 +159,16 @@ export default function Home() {
     const currentAudio = audioElement.current; // Capture audioElement.current in a local variable
 
     const handleEnd = () => {
-      switch (repeatMode) {
-        case repeatModes.NONE:
-          if (currentAudioIndex === playlist.length - 1) {
-            break;
-          } else {
-            setCurrentAudioIndex(prevIndex => {
-              let newIndex = prevIndex + 1;
-              if (newIndex > playlist.length - 1) {
-                newIndex = 0; // Wrap around to the first item if at the end of the list
-              }
-              return newIndex;
-            });
-          }
-          break;
-        case repeatModes.PLAYLIST:
-          setCurrentAudioIndex(prevIndex => {
-            let newIndex = prevIndex + 1;
-            if (newIndex > playlist.length - 1) {
-              newIndex = 0; // Wrap around to the first item if at the end of the list
-            }
-            return newIndex;
-          });
-          break;
-        case repeatModes.ONE:
-          setCurrentAudioIndex(prevIndex => {
-            let newIndex = prevIndex + 1;
-            if (newIndex > playlist.length - 1) {
-              newIndex = 0; // Wrap around to the first item if at the end of the list
-            }
-            return newIndex;
-          });
-          break;
+      if (repeatMode === repeatModes.ONE && currentAudio) {
+        currentAudio.currentTime = 0;
+        currentAudio.play();
+        return;
       }
+      if (
+        repeatMode === repeatModes.PLAYLIST ||
+        (repeatMode === repeatModes.NONE && currentAudioIndex !== playlist.length - 1)
+      )
+        handleChangeSong(true);
     };
 
     const updateProgress = () => {
@@ -214,8 +177,7 @@ export default function Home() {
         const duration = audioElement.current.duration;
         setElapsedTime(currentTime);
         setTotalTime(duration);
-        const progress = (currentTime / duration) * 100;
-        setPlaybackPosition(progress);
+        setPlaybackPosition((currentTime / duration) * 100);
       }
     };
 
@@ -230,8 +192,9 @@ export default function Home() {
         currentAudio.removeEventListener("ended", handleEnd);
       }
     };
-  }, [audioElement, handleChangeSong, repeatMode, currentAudioIndex, playlist.length]);
+  }, [repeatMode, currentAudioIndex, playlist.length, handleChangeSong]);
 
+  // Function to handle audio playback
   useEffect(() => {
     if (audioElement.current) {
       if (isAudioPlaying) {
@@ -240,7 +203,7 @@ export default function Home() {
         audioElement.current.pause();
       }
     }
-  }, [isAudioPlaying, audioElement, currentAudioIndex]);
+  }, [isAudioPlaying, currentAudioIndex]);
 
   const handleSliderChange = (value: number[]) => {
     if (audioElement.current) {
