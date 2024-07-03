@@ -69,11 +69,29 @@ export default function Home() {
             : null;
         const response = await fetch(uri + ".json"); // Fetch metadata JSON from the URI
         const metadata = await response.json(); // Parse the JSON response
+        let audioDuration = 0;
+        if (metadata.audio) {
+          try {
+            audioDuration = await new Promise((resolve, reject) => {
+              const audio = new Audio(metadata.audio);
+              audio.addEventListener("loadedmetadata", () => {
+                resolve(audio.duration);
+              });
+              audio.addEventListener("error", () => {
+                reject(new Error("Failed to load audio"));
+              });
+            });
+          } catch (error) {
+            console.error("Error fetching audio duration:", error);
+            audioDuration = 0; // Fallback duration in case of error
+          }
+        }
+
         const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price, 330).toString()}`; // Generate identicon based on metadata
         const item: IItem = {
           artist: metadata.artist ?? "Uknown Artist",
           audio: metadata.audio,
-          duration: metadata.duration ?? 0,
+          duration: audioDuration ?? 0,
           identicon: identicon,
           itemId: token.nftTokenId,
           name: metadata.name,
@@ -104,12 +122,12 @@ export default function Home() {
     //   setPlaylist(tracks);
     //   setIsLoading(false);
     // };
-
     if (marketItems.length === 0) {
       fetchMarketItems(); // Fetch market items if the list is empty
       // fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Function to skip to the next or previous song
   const handleChangeSong = useCallback(
