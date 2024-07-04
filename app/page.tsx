@@ -41,6 +41,7 @@ export enum repeatModes {
   ONE,
   PLAYLIST
 }
+
 // NOTE: In Next.js 14, the page.tsx file in the root folder represents the UI for the root URL (e.g., localhost:3000).
 export default function Home() {
   const { blockchainContract, s3, userAccount } = useBlockchain(); // Destructure blockchainContract from useBlockchain hook
@@ -282,6 +283,8 @@ export default function Home() {
   };
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
+
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
