@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
-import Identicon from "identicon.js";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -31,7 +30,7 @@ export interface IItem {
   artist: string;
   audio: string;
   duration: number;
-  identicon: string;
+  icon: string;
   itemId: ethers.BigNumber;
   name: string;
   price: ethers.BigNumber;
@@ -102,13 +101,11 @@ export default function Home() {
               audioDuration = 0; // Fallback duration in case of error
             }
           }
-
-          const identicon = `data:image/png;base64,${new Identicon(metadata ? metadata.name + metadata.price + metadata.artists : "", 330).toString()}`; // Generate identicon based on metadata
           const item: IItem = {
             artist: metadata?.artist ?? "Unknown Artist",
             audio: metadata?.audio,
             duration: audioDuration,
-            identicon,
+            icon: metadata?.icon,
             itemId: token.nftTokenId,
             name: metadata?.name,
             price: token.nftPrice
@@ -310,7 +307,7 @@ export default function Home() {
     return (
       <div className="container mx-auto mt-5">
         <main className="grid grid-cols-7" role="main">
-          <MusicUpload />
+          {s3 && <MusicUpload s3={s3} />}
         </main>
       </div>
     );
@@ -354,7 +351,7 @@ export default function Home() {
                 alt=""
                 className="card-img-top"
                 height={300}
-                src={playlist[currentAudioIndex]?.identicon}
+                src={playlist[currentAudioIndex]?.icon}
                 width={300}
               />
             </div>

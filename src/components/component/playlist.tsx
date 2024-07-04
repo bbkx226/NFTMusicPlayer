@@ -81,7 +81,7 @@ export const Playlist: React.FC<PlaylistProps> = ({
                 trackRefs.current[idx] = el as HTMLDivElement | null;
               }}
             >
-              <Image alt={item.name} height={36} src={item.identicon ?? Logo} width={36} />
+              <Image alt={item.name} height={36} src={item.icon ?? Logo} width={36} />
               <div className="flex-1 text-left">
                 <TooltipProvider>
                   <Tooltip>

@@ -1,6 +1,5 @@
 "use client";
 import { ethers } from "ethers";
-import Identicon from "identicon.js";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +16,7 @@ import { useBlockchain } from "../layout";
 interface ResaleItem {
   artist: string;
   audio: string;
-  identicon: string;
+  icon: string;
   itemId: ethers.BigNumber;
   name: string;
   price: ethers.BigNumber;
@@ -67,12 +66,10 @@ export default function Resales() {
             }
           }
 
-          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price + metadata.artist, 330).toString()}`;
-          // define listed item object
           const resaleItem: ResaleItem = {
             artist: metadata?.artist ?? "Unknown Artist",
             audio: metadata?.audio ?? "",
-            identicon,
+            icon: metadata?.icon,
             itemId: args?.nftTokenId ?? 0,
             name: metadata?.name ?? "",
             price: args?.nftPrice ?? 0
@@ -226,19 +223,21 @@ export default function Resales() {
                     >
                       <div className="row-span-2">
                         <Image
-                          alt={item.name}
-                          className="w-full h-full object-cover rounded-t-lg"
-                          height={120}
-                          src={item.identicon}
-                          width={120}
+                          alt=""
+                          className="w-full h-48 object-cover rounded-t-lg"
+                          height={72}
+                          layout="responsive"
+                          objectFit="cover"
+                          src={item.icon}
+                          width={72}
                         />
                       </div>
-                      <div className="p-4 grid grid-rows-3">
+                      <div className="px-8 grid grid-rows-3">
                         <p className="flex items-center justify-center text-2xl font-bold row-span-2">
                           {item.name} - {item.artist}
                         </p>
                         <div className="mt-2 flex items-center justify-center">
-                          <p className="">{ethers.utils.formatEther(item.price)} ETH</p>
+                          <p className="pb-4">{ethers.utils.formatEther(item.price)} ETH</p>
                         </div>
                       </div>
                     </SwiperSlide>
@@ -296,19 +295,21 @@ export default function Resales() {
                       >
                         <div className="row-span-2">
                           <Image
-                            alt={item.name}
-                            className="w-full h-full object-cover rounded-t-lg"
-                            height={120}
-                            src={item.identicon}
-                            width={120}
+                            alt=""
+                            className="w-full h-48 object-cover rounded-t-lg"
+                            height={72}
+                            layout="responsive"
+                            objectFit="cover"
+                            src={item.icon}
+                            width={72}
                           />
                         </div>
-                        <div className="p-4 grid grid-rows-3">
+                        <div className="px-8 grid grid-rows-3">
                           <p className="flex items-center justify-center text-2xl font-bold row-span-2">
                             {item.name} - {item.artist}
                           </p>
                           <div className="mt-2 flex items-center justify-center">
-                            <p className="">{ethers.utils.formatEther(item.price)} ETH</p>
+                            <p className="pb-4">{ethers.utils.formatEther(item.price)} ETH</p>
                           </div>
                         </div>
                       </SwiperSlide>

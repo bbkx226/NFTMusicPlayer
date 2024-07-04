@@ -1,6 +1,5 @@
 "use client";
 import { ethers } from "ethers";
-import Identicon from "identicon.js";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +15,7 @@ import { useBlockchain } from "../layout";
 interface TokenItem {
   artist: string;
   audio: string;
-  identicon: string;
+  icon: string;
   itemId: ethers.BigNumber;
   name: string;
   price: ethers.BigNumber;
@@ -64,12 +63,10 @@ export default function Tokens() {
             }
           }
 
-          const identicon = `data:image/png;base64,${new Identicon(metadata.name + metadata.price + metadata.artist, 330).toString()}`;
-          // define item object
           const tokenItem: TokenItem = {
             artist: metadata?.artist ?? "Unknown Artist",
             audio: metadata.audio,
-            identicon,
+            icon: metadata.icon,
             itemId: i.nftTokenId,
             name: metadata?.name,
             price: i.nftPrice,
@@ -209,13 +206,14 @@ export default function Tokens() {
                         <div className="card">
                           <Image
                             alt=""
-                            className="w-full h-64 object-cover rounded-t-lg"
-                            height={120}
-                            src={item.identicon}
-                            width={120}
+                            className="w-full h-48 object-cover rounded-t-lg"
+                            height={60}
+                            layout="responsive"
+                            src={item.icon}
+                            width={60}
                           />
                           <div className="px-6 py-4">
-                            <div className="font-bold text-xl mb-2">
+                            <div className="font-bold text-xl mb-10">
                               {item.name} - {item.artist}
                             </div>
                             <div className=" px-4">

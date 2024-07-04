@@ -1,24 +1,36 @@
 import AWS from "aws-sdk";
 import React, { ChangeEvent, FormEvent, useState } from "react";
 
-// Initialize S3
-AWS.config.update({
-  accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID_ENV,
-  region: "ap-southeast-1",
-  secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY_ENV
-});
+interface S3Props {
+  s3: AWS.S3;
+}
 
-const s3 = new AWS.S3();
-
-const MusicUpload = () => {
+const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
   const [artistName, setArtistName] = useState<string>("");
   const [songName, setSongName] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
 
+  async function listS3Objects(prefix: string): Promise<string[]> {
+    const params = {
+      Bucket: bucketName,
+      Prefix: prefix
+    };
+
+    try {
+      const data = await s3.listObjectsV2(params).promise();
+      const jsonFiles = data.Contents?.filter(file => file.Key?.endsWith(".json")).map(file => file.Key!) || [];
+      return jsonFiles;
+    } catch (error) {
+      console.error("Error listing S3 objects:", error);
+      return [];
+    }
+  }
+
   const uploadFileToS3 = async (file: Blob | File, fileName: string) => {
     const params = {
+      ACL: "public-read",
       Body: file,
       Bucket: bucketName,
       Key: fileName
@@ -27,6 +39,7 @@ const MusicUpload = () => {
     try {
       await s3.upload(params).promise();
       console.log(`File uploaded successfully at ${fileName}`);
+      return `https://${params.Bucket}.s3.ap-southeast-1.amazonaws.com/${fileName}`;
     } catch (error) {
       console.error("Error uploading file: ", error);
     }
@@ -40,13 +53,29 @@ const MusicUpload = () => {
       return;
     }
 
-    // Upload the music file
-    const musicFileName = `songs/${songName.replace(/\s+/g, "_")}-${Date.now()}`;
-    await uploadFileToS3(file, musicFileName);
+    const jsonFiles = await listS3Objects("database/");
+    const jsonFileCount = jsonFiles.length;
+    const tokenId = jsonFileCount;
 
-    // Create and upload metadata JSON
-    const metadata = { artistName, price, songName };
-    const metadataFileName = `database/${songName.replace(/\s+/g, "_")}-${Date.now()}.json`;
+    const randomNumber = Math.floor(Math.random() * 10000);
+
+    // Step 2: Replace the number in the URL
+    const baseUrl = "https://cryptopunks.app/cryptopunks/cryptopunk";
+    const newUrl = `${baseUrl}${randomNumber}.png`;
+
+    // Upload the music file and get the S3 URL
+    const musicFileName = `songs/${songName.replace(/\s+/g, "_")}-${Date.now()}`;
+    const songUrl = await uploadFileToS3(file, musicFileName);
+
+    const metadata = {
+      artist: artistName,
+      audio: songUrl,
+      icon: newUrl,
+      name: songName,
+      price: price,
+      tokenId: tokenId
+    };
+    const metadataFileName = `database/${tokenId}.json`;
     await uploadFileToS3(new Blob([JSON.stringify(metadata)], { type: "application/json" }), metadataFileName);
   };
 
