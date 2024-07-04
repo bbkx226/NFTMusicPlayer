@@ -205,12 +205,14 @@ export default function Tokens() {
                         ></audio>
                         <div className="card">
                           <Image
-                            alt=""
+                            alt="cryptopunk-icons"
                             className="w-full h-48 object-cover rounded-t-lg"
-                            height={60}
-                            layout="responsive"
+                            height={72}
+                            priority
+                            sizes="100vw"
                             src={item.icon}
-                            width={60}
+                            style={{ objectFit: "cover" }}
+                            width={72}
                           />
                           <div className="px-6 py-4">
                             <div className="font-bold text-xl mb-10">
