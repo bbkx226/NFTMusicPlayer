@@ -4,6 +4,7 @@ import AWS from "aws-sdk";
 import { ethers } from "ethers";
 import Cookies from "js-cookie";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
 
 import NFTMusicPlayerAbi from "../abi/NFTMusicPlayer.json";
 import NFTMusicPlayerAddress from "../abi/NFTMusicPlayer-address.json";
@@ -113,6 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <BlockchainContext.Provider
               value={{ blockchainContract, handleWeb3Connection, isLoading, s3, userAccount }}
             >
+              <Toaster gutter={10} position="bottom-right" />
               <Header handleWeb3Connection={handleWeb3Connection} userAccount={userAccount} />
               {isLoading ? (
                 <main className="flex flex-col justify-center items-center py-40">

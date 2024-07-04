@@ -306,9 +306,7 @@ export default function Home() {
   if (userAccount && userAccount.toLowerCase() === ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
     return (
       <div className="container mx-auto mt-5">
-        <main className="grid grid-cols-7" role="main">
-          {s3 && <MusicUpload s3={s3} />}
-        </main>
+        <main role="main">{s3 && <MusicUpload s3={s3} />}</main>
       </div>
     );
   } else {
@@ -347,13 +345,7 @@ export default function Home() {
 
           <div className="card col-span-3 space-y-10 px-4 text-primary">
             <div className="flex items-center justify-center pt-2">
-              <Image
-                alt=""
-                className="card-img-top"
-                height={300}
-                src={playlist[currentAudioIndex]?.icon}
-                width={300}
-              />
+              <Image alt="" className="card-img-top" height={300} src={playlist[currentAudioIndex]?.icon} width={300} />
             </div>
             <div className="flex flex-col items-center justify-between px-4">
               <div className="h-36 flex flex-col justify-center">
