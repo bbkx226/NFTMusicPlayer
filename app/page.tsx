@@ -130,16 +130,8 @@ export default function Home() {
 
   // Effect to load marketplace items on component mount
   useEffect(() => {
-    // Function to load dummy tracks
-    // const fetchTracks = async () => {
-    //   const tracks = await fetch("/tracks.json").then(response => response.json());
-    //   setMarketItems(tracks);
-    //   setPlaylist(tracks);
-    //   setIsLoading(false);
-    // };
     if (marketItems.length === 0) {
       fetchMarketItems(); // Fetch market items if the list is empty
-      // fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
