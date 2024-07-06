@@ -1,7 +1,6 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
 import Image from "next/image";
