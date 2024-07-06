@@ -16,6 +16,8 @@ interface HeaderProps {
   userAccount: null | string;
 }
 
+const ARTIST_ACCOUNT_NUMBER = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+
 const Header: React.FC<HeaderProps> = ({ handleWeb3Connection, userAccount }) => {
   return (
     <div className="text-white pt-3 flex justify-center">
@@ -26,27 +28,31 @@ const Header: React.FC<HeaderProps> = ({ handleWeb3Connection, userAccount }) =>
         </Link>
         <NavigationMenu>
           <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <div className="text-base">Home</div>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/tokens" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <div className="text-base">My Tokens</div>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/resales" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  <div className="text-base">My Resales</div>
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
+            {userAccount && userAccount.toLowerCase() !== ARTIST_ACCOUNT_NUMBER.toLowerCase() && (
+              <>
+                <NavigationMenuItem>
+                  <Link href="/" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <div className="text-base">Home</div>
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/tokens" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <div className="text-base">My Tokens</div>
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <Link href="/resales" legacyBehavior passHref>
+                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                      <div className="text-base">My Resales</div>
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              </>
+            )}
             <NavigationMenuItem>
               {userAccount ? (
                 <Button asChild variant="secondary">
