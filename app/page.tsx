@@ -358,56 +358,6 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="card col-span-3 space-y-10 px-4 text-primary">
-            <div className="flex items-center justify-center pt-2">
-              <Image alt="" className="card-img-top" height={300} src={playlist[currentAudioIndex]?.icon} width={300} />
-            </div>
-            <div className="flex flex-col items-center justify-between px-4">
-              <div className="h-36 flex flex-col justify-center">
-                <div className="text-4xl font-bold">{playlist[currentAudioIndex]?.name}</div>
-                <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
-              </div>
-              <div className="flex flex-col w-full items-center justify-center">
-                <Slider
-                  defaultValue={[0]}
-                  max={100}
-                  min={0}
-                  onValueChange={handleSliderChange}
-                  step={1}
-                  value={[playbackPosition]}
-                />
-                {formatTime(elapsedTime)} / {formatTime(totalTime)}
-              </div>
-              <div className="flex pt-4">
-                <Button onClick={handleShuffle} variant="ghost">
-                  <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
-                </Button>
-                <Button onClick={() => handleChangeSong(false)} variant="ghost">
-                  <MdOutlineSkipPrevious className="w-8 h-8" />
-                </Button>
-                <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
-                  {isAudioPlaying ? (
-                    <MdOutlinePause className="w-8 h-8" />
-                  ) : (
-                    <MdOutlinePlayArrow className="w-10 h-10" />
-                  )}
-                </Button>
-                <Button onClick={() => handleChangeSong(true)} variant="ghost">
-                  <MdOutlineSkipNext className="w-8 h-8" />
-                </Button>
-                <Button onClick={handleRepeatModeChange} variant="ghost">
-                  {repeatMode === repeatModes.NONE ? (
-                    <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
-                  ) : repeatMode === repeatModes.PLAYLIST ? (
-                    <MdOutlineRepeat className="w-6 h-6 text-primary" />
-                  ) : (
-                    <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-
           <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
             <div className="text-primary text-base font-bold">Buy This Song</div>
             <div className="text-left">
