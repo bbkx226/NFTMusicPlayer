@@ -82,7 +82,7 @@ export const PlaylistBar: React.FC<PlaylistBarProps> = ({
               }}
             >
               <Image alt={item.name} height={36} src={item.identicon ?? Logo} width={36} />
-              <div className="flex-1 text-left">
+              <div className={cn("flex-1 text-left", { "background-primary/50": idx === currentAudioIndex })}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>

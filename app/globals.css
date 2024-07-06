@@ -108,7 +108,7 @@
     transition: left var(--transition-duration, 0.5s) var(--transition-easing, ease);
   }
 
-   .glass-hover::before {
+  .glass-hover::before {
     content: "";
     background: rgba(255, 255, 255, 0.4);
     left: -150%;
@@ -219,66 +219,6 @@
     }
   }
 
-  .glass-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: 2px 15px;
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    backdrop-filter: blur(16px) saturate(180%);
-    background-color: rgba(17, 25, 40, 0.5);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.125);
-    color: #999;
-    font-size: 1em;
-    text-decoration: none;
-    transition: 0.5s;
-    overflow: hidden;
-  }
-
-  .glass-button span {
-    position: relative;
-    z-index: 1;
-    letter-spacing: 0.2em;
-  }
-
-  .glass-button:hover {
-    color: var(--clr);
-    text-shadow:
-      0 0 15px var(--clr),
-      0 0 40px var(--clr);
-  }
-
-  .glass-button::before {
-    content: "";
-    position: absolute;
-    top: var(--y);
-    left: var(--x);
-    transform: translate(-50%, -50%);
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(var(--clr), transparent, transparent);
-    opacity: 0;
-    transition:
-      0.5s,
-      top 0s,
-      left 0s;
-  }
-
-  .glass-button:hover::before {
-    opacity: 1;
-  }
-
-  .glass-button::after {
-    content: "";
-    background-color: rgba(17, 25, 40, 0.5);
-    position: absolute;
-    inset: 2px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.125);
-  }
-
   /* Glow Button */
 
   .glow-button {
@@ -295,9 +235,9 @@
     cursor: pointer;
     overflow: hidden;
     transition: transform 0.3s;
-    will-change: transform; 
+    will-change: transform;
   }
-  
+
   .glow-button::before {
     content: "";
     position: absolute;
@@ -307,29 +247,30 @@
     height: 200px;
     background: radial-gradient(circle, #0891b2, transparent 40%);
     transform: translate(-50%, -50%);
-    transition: opacity 0.3s, transform 0.3s;
+    transition:
+      opacity 0.3s,
+      transform 0.3s;
     opacity: 0;
     pointer-events: none;
     z-index: 0;
   }
-  
+
   .glow-button:hover::before {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.2);
   }
 
   .glow-button:hover {
-    transform: scale(1.1); 
+    transform: scale(1.1);
   }
 
   .glow-button span {
     position: relative;
-    z-index: 1; 
+    z-index: 1;
   }
-  
+
   .glow-button:active {
     border: 2px solid #0891b2;
-    
   }
 
   /*  */
@@ -374,7 +315,6 @@
   .circle-button:hover {
     @apply bg-opacity-20 text-slate-100 transform scale-110;
     background-color: rgba(0, 0, 0, 0.1);
-    
   }
 
   @keyframes moveUpAndDown {
@@ -455,5 +395,4 @@
       box-shadow: 0 0 50px rgba(186, 85, 211, 0.5);
     }
   }
-  
 }
