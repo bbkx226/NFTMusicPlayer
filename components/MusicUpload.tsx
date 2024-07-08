@@ -1,5 +1,5 @@
 import AWS from "aws-sdk";
-import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 
 interface S3Props {
@@ -11,7 +11,6 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
   const [songName, setSongName] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -57,7 +56,6 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
     try {
       await s3.upload(params).promise();
       console.log(`File uploaded successfully at ${fileName}`);
-      setUploadSuccess(true);
       setArtistName("");
       setSongName("");
       setPrice("");
@@ -135,7 +133,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
       setIsUploading(false);
     }
   };
-  
+
   return (
     <div className="flex items-center justify-center min-h-fit" style={{ backgroundColor: "#0a0a0a" }}>
       <div className="z-10 w-full max-w-sm p-10 m-4 bg-white rounded-xl sm:m-0 sm:max-w-lg">
