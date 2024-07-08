@@ -69,7 +69,6 @@ export default function Home() {
       }
       const fetchedItems: IItem[] = await Promise.all(
         tokens.map(async (token: IToken) => {
-          console.log(token.nftSeller, userAccount);
           let metadata = null;
           if (blockchainContract !== null && blockchainContract !== undefined) {
             const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
