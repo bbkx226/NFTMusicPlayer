@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -37,6 +38,8 @@ export default function Tokens() {
   const [previousTokenIndex, setPreviousTokenIndex] = useState<null | number>(null);
   const [resellNFTId, setresellNFTId] = useState<ethers.BigNumber | null>(null);
   const [resellNFTPrice, setresellNFTPrice] = useState<number | readonly string[] | string | undefined>(undefined);
+  const [toastShown, setToastShown] = useState(false);
+
   const tokenswiper = useRef<SwiperClass | null>(null);
 
   const { blockchainContract, s3 } = useBlockchain();
@@ -45,44 +48,73 @@ export default function Tokens() {
   const loadUserTokens = async () => {
     if (blockchainContract && s3) {
       // Get all unsold items/tokens
-      const results = await blockchainContract.fetchUserNFTs();
-      const userTokens = await Promise.all(
-        results.map(async (i: ResultItem) => {
-          let metadata = null;
-          if (blockchainContract !== null && blockchainContract !== undefined) {
-            const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
-            const uri = await blockchainContract.tokenURI(i.nftTokenId);
-            const url = new URL(uri);
-            const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
+      try {
+        const results = await blockchainContract.fetchUserNFTs();
+        const userTokens = await Promise.all(
+          results.map(async (i: ResultItem) => {
+            let metadata = null;
+            if (blockchainContract !== null && blockchainContract !== undefined) {
+              const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
+              const uri = await blockchainContract.tokenURI(i.nftTokenId);
+              const url = new URL(uri);
+              const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
 
-            try {
-              const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
-              metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
-            } catch (error) {
-              console.error("Error fetching metadata from S3:", error);
+              try {
+                const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
+                metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;
+              } catch (error) {
+                console.error("Error fetching metadata from S3:", error);
+              }
             }
-          }
 
-          const tokenItem: TokenItem = {
-            artist: metadata?.artist ?? "Unknown Artist",
-            audio: metadata.audio,
-            icon: metadata.icon,
-            itemId: i.nftTokenId,
-            name: metadata?.name,
-            price: i.nftPrice,
-            resellPrice: null
-          };
-          return tokenItem;
-        })
-      );
-      setUserTokens(userTokens);
+            const tokenItem: TokenItem = {
+              artist: metadata?.artist ?? "Unknown Artist",
+              audio: metadata.audio,
+              icon: metadata.icon,
+              itemId: i.nftTokenId,
+              name: metadata?.name,
+              price: i.nftPrice,
+              resellPrice: null
+            };
+            return tokenItem;
+          })
+        );
+        setUserTokens(userTokens);
+      } catch {
+        if (!toastShown) {
+          toast.error(
+            "Oops! We hit a snag fetching your tokens. 🎵 Check back after a short interlude. \n\nDeveloper note: Ensure the music contracts are deployed.",
+            {
+              duration: 4000,
+              icon: "⚠️",
+              style: {
+                background: "#333",
+                color: "#fff"
+              }
+            }
+          );
+          setToastShown(true); // Update the state to prevent the toast from showing again
+        }
+      }
       setIsLoading(false);
     }
   };
 
   // Function to resell a token
   const resellNFT = async (tokenItem: TokenItem) => {
-    if (resellNFTPrice === "0" || tokenItem.itemId !== resellNFTId || !resellNFTPrice || !blockchainContract) return;
+    if (resellNFTPrice === "0") {
+      toast.error("Price must be more than zero. Please enter a positive value. 🔢", {
+        duration: 4000,
+        icon: "⚠️",
+        style: {
+          background: "#333",
+          color: "#fff"
+        }
+      });
+      return;
+    }
+
+    if (tokenItem.itemId !== resellNFTId || !resellNFTPrice || !blockchainContract) return;
     // Get royalty fee
     const fee = await blockchainContract.royaltyFeePercentage();
     const price = ethers.utils.parseEther(resellNFTPrice.toString());
@@ -147,7 +179,7 @@ export default function Tokens() {
   if (isLoading)
     return (
       <main style={{ padding: "1rem 0" }}>
-        <h2>Loading...</h2>
+        <h2>Summoning Magic...</h2>
       </main>
     );
 
@@ -271,11 +303,7 @@ export default function Tokens() {
                                 type="number"
                                 value={resellNFTId === item.itemId ? resellNFTPrice : ""}
                               />
-                              <button
-                                className="glow-button"
-                                //className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                onClick={() => resellNFT(item)}
-                              >
+                              <button className="glow-button" onClick={() => resellNFT(item)}>
                                 <span>Resell</span>
                               </button>
                             </div>

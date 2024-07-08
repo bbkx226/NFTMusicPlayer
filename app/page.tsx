@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import {
   MdOutlinePause,
   MdOutlinePlayArrow,
@@ -15,9 +16,9 @@ import {
   MdOutlineSkipPrevious
 } from "react-icons/md";
 
+import MusicUpload from "../components/MusicUpload";
 import { PlaybackSlider } from "../components/PlaybackSlider";
 import { PlaylistBar } from "../components/PlaylistBar";
-import MusicUpload from "./components/MusicUpload";
 import { useBlockchain } from "./layout";
 // Define TypeScript interfaces for token and item data structures
 interface IToken {
@@ -63,7 +64,25 @@ export default function Home() {
   // Function to load marketplace items
   const fetchMarketItems = async () => {
     if (s3) {
-      let tokens: IToken[] = await (blockchainContract && blockchainContract.fetchUnsoldNFTs());
+      let tokens: IToken[] = [];
+      try {
+        tokens = await (blockchainContract && blockchainContract.fetchUnsoldNFTs());
+      } catch (error) {
+        toast.error(
+          "Encountered a hiccup while seeking unsold treasures. 🔄 \n\nDeveloper note: Ensure the music contracts are deployed.",
+          {
+            duration: 4000,
+            icon: "⚠️",
+            style: {
+              background: "#333",
+              color: "#fff"
+            }
+          }
+        );
+        setIsLoading(false);
+        return;
+      }
+
       if (userAccount) {
         tokens = tokens.filter(token => token.nftSeller.toString().toLowerCase() !== userAccount.toLowerCase());
       }
@@ -120,7 +139,7 @@ export default function Home() {
   };
 
   // Function to buy a marketplace item
-  const purchaseItem = async (item: IItem) => {
+  const purchaseItem = async (item: IItem): Promise<void> => {
     if (blockchainContract) {
       await (await blockchainContract.purchaseNFT(item.itemId, { value: item.price })).wait(); // Call purchaseNFT function on the blockchain and wait for the transaction to complete
       fetchMarketItems(); // Refresh market items after purchase
@@ -131,8 +150,10 @@ export default function Home() {
 
   // Effect to load marketplace items on component mount
   useEffect(() => {
-    if (marketItems.length === 0) {
+    if (marketItems.length === 0 && userAccount && userAccount.toLowerCase() !== ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
       fetchMarketItems(); // Fetch market items if the list is empty
+    } else {
+      setIsLoading(!isLoading);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -263,7 +284,7 @@ export default function Home() {
           <div className="face top"></div>
           <div className="face bottom"></div>
         </div>
-        <h2 className="text-3xl font-bold moving-text mt-20">Loading ...</h2>
+        <h2 className="text-3xl font-bold moving-text mt-20">Spinning up the turntables... Your tunes are loading!</h2>
       </main>
     );
 
@@ -286,7 +307,7 @@ export default function Home() {
             <div className="face top"></div>
             <div className="face bottom"></div>
           </div>
-          <h2 className="text-3xl font-bold moving-text mt-20">No Listed Assets</h2>
+          <h2 className="text-3xl font-bold moving-text mt-20">Exploring the Horizon... No Treasures Spotted Yet!</h2>
         </main>
       );
     }

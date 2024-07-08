@@ -25,13 +25,9 @@ interface ResaleItem {
 export default function Resales() {
   const { blockchainContract, s3, userAccount } = useBlockchain();
 
-  // const audioRefs = useRef<HTMLAudioElement[]>([]);
   const [resaleItems, setResaleItems] = useState<ResaleItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [completedSales, setCompletedSales] = useState<ResaleItem[] | undefined>([]);
-  // const [isAudioPlaying, setIsAudioPlaying] = useState<boolean | null>(null);
-  // const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
-  // const [previousAudioIndex, setPreviousAudioIndex] = useState<null | number>(null);
   const listedSwiper = useRef<SwiperClass | null>(null);
   const soldSwiper = useRef<SwiperClass | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -95,17 +91,6 @@ export default function Resales() {
     }
   };
 
-  // Effect to handle audio play/pause
-  // useEffect(() => {
-  //   if (isAudioPlaying) {
-  //     audioRefs.current[currentAudioIndex].play();
-  //     if (currentAudioIndex !== previousAudioIndex && previousAudioIndex !== null)
-  //       audioRefs.current[previousAudioIndex].pause();
-  //   } else if (isAudioPlaying !== null) {
-  //     audioRefs.current[currentAudioIndex].pause();
-  //   }
-  // }, [isAudioPlaying, currentAudioIndex, previousAudioIndex]);
-
   // Effect to load user's resale items
   useEffect(() => {
     if (resaleItems && resaleItems.length === 0) {
@@ -147,7 +132,7 @@ export default function Resales() {
   if (isLoading)
     return (
       <main style={{ padding: "1rem 0" }}>
-        <h2>Loading...</h2>
+        <h2>Conjuring Wonders...</h2>
       </main>
     );
 
@@ -156,7 +141,6 @@ export default function Resales() {
       <div className="flex justify-center w-full ">
         {(resaleItems && resaleItems.length > 0) || (completedSales && completedSales.length > 0) ? (
           <div className="px-5 w-full">
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-3"> */}
             <div className="glass">
               <div className="glass-header py-4 spotlight-left">
                 <h2 className="text-2xl font-semibold">Listed NFT Music</h2>
@@ -196,7 +180,6 @@ export default function Resales() {
                       listedSwiper.current = ref;
                       setTotalSlides(ref.slides.length);
                     }}
-                    // pagination={true}
                     slidesPerView={"auto"}
                   >
                     {resaleItems.map((item, idx) => (
@@ -230,7 +213,7 @@ export default function Resales() {
                   </Swiper>
                 ) : (
                   <main className="py-4">
-                    <h2>No resale assets</h2>
+                    <h2>Every Treasure Has Found Its New Adventure</h2>
                   </main>
                 )}
 
@@ -273,7 +256,6 @@ export default function Resales() {
                   onSwiper={ref => {
                     soldSwiper.current = ref;
                   }}
-                  // pagination={true}
                   slidesPerView={"auto"}
                 >
                   {completedSales && completedSales.length > 0 ? (
@@ -307,7 +289,7 @@ export default function Resales() {
                     ))
                   ) : (
                     <main className="py-4">
-                      <h2>No sold assets</h2>
+                      <h2>All Treasures Still Await Their New Horizons</h2>
                     </main>
                   )}
                 </Swiper>
@@ -329,7 +311,7 @@ export default function Resales() {
               <div className="face top"></div>
               <div className="face bottom"></div>
             </div>
-            <h2 className="text-3xl font-bold moving-text mt-20">No Listed Assets</h2>
+            <h2 className="text-3xl font-bold moving-text mt-20">No Treasures Awaiting Rediscovery Yet</h2>
           </main>
         )}
       </div>

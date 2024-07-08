@@ -1,5 +1,5 @@
 import AWS from "aws-sdk";
-import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 
 interface S3Props {
@@ -12,6 +12,21 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
   const [price, setPrice] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const clearFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Step 3: Clear the input
+    }
+  };
 
   const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
 
@@ -43,6 +58,20 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
       await s3.upload(params).promise();
       console.log(`File uploaded successfully at ${fileName}`);
       setUploadSuccess(true);
+      setArtistName("");
+      setSongName("");
+      setPrice("");
+      clearFileInput();
+      setFile(null);
+      toast.success("🌌 File uploaded successfully! \nEnjoy your journey through the stars of music.", {
+        duration: 4000,
+        icon: "🚀",
+        style: {
+          background: "#333",
+          color: "#fff"
+        }
+      });
+      
       return `https://${params.Bucket}.s3.ap-southeast-1.amazonaws.com/${fileName}`;
     } catch (error) {
       console.error("Error uploading file: ", error);
@@ -56,11 +85,6 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!file) {
-      console.error("File is not selected");
-      return;
-    }
-
     if (!validateInputs()) {
       toast.error("Please fill in all fields. 📝", {
         duration: 4000,
@@ -72,6 +96,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
       });
       return;
     }
+    setIsUploading(true);
     const jsonFiles = await listS3Objects("database/");
     const jsonFileCount = jsonFiles.length;
     const tokenId = jsonFileCount;
@@ -84,7 +109,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
 
     // Upload the music file and get the S3 URL
     const musicFileName = `songs/${songName.replace(/\s+/g, "_")}-${Date.now()}`;
-    const songUrl = await uploadFileToS3(file, musicFileName);
+    const songUrl = await uploadFileToS3(file as Blob, musicFileName);
 
     const metadata = {
       artist: artistName,
@@ -95,27 +120,22 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
       tokenId: tokenId
     };
     const metadataFileName = `database/${tokenId}.json`;
-    await uploadFileToS3(new Blob([JSON.stringify(metadata)], { type: "application/json" }), metadataFileName);
-  };
-
-  useEffect(() => {
-    if (uploadSuccess && validateInputs()) {
-      setArtistName("");
-      setSongName("");
-      setPrice("");
-      setFile(null);
-      toast.success("🌌 File uploaded successfully! \nEnjoy your journey through the stars of music.", {
+    try {
+      await uploadFileToS3(new Blob([JSON.stringify(metadata)], { type: "application/json" }), metadataFileName);
+    } catch (error) {
+      toast.error("AWS S3 is unreachable, please try again later. 🔄", {
         duration: 4000,
-        icon: "🚀",
+        icon: "⚠️",
         style: {
           background: "#333",
           color: "#fff"
         }
       });
+    } finally {
+      setIsUploading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uploadSuccess]);
-
+  };
+  
   return (
     <div className="flex items-center justify-center min-h-fit" style={{ backgroundColor: "#0a0a0a" }}>
       <div className="z-10 w-full max-w-sm p-10 m-4 bg-white rounded-xl sm:m-0 sm:max-w-lg">
@@ -175,7 +195,8 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
             <input
               accept="audio/mp3, audio/wav, audio/ogg, audio/mpeg, audio/aac, audio/flac, audio/mp4, audio/x-aiff"
               className="text-base text-gray-500 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files ? e.target.files[0] : null)}
+              onChange={handleFileChange}
+              ref={fileInputRef}
               type="file"
             />
           </div>
@@ -183,7 +204,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
             className="my-5 w-full flex justify-center bg-blue-500 text-gray-100 p-4 rounded-full tracking-wide font-semibold focus:outline-none focus:shadow-outline hover:bg-blue-600 shadow-lg cursor-pointer transition ease-in duration-300"
             type="submit"
           >
-            Upload
+            {isUploading ? "Harmonizing the Blockchain 🎵⛓" : "Upload"}
           </button>
         </form>
       </div>
