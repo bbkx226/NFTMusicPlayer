@@ -144,24 +144,6 @@ export default function Resales() {
     }
   }, []);
 
-  // useEffect(() => {
-  //   const handleMouseMove = (e: MouseEvent) => {
-  //     const btn = e.target as HTMLElement;
-  //     if (btn.classList.contains("glass-button")) {
-  //       const x = e.pageX - btn.offsetLeft;
-  //       const y = e.pageY - btn.offsetTop;
-  //       btn.style.setProperty("--x", `${x}px`);
-  //       btn.style.setProperty("--y", `${y}px`);
-  //     }
-  //   };
-
-  //   document.addEventListener("mousemove", handleMouseMove);
-
-  //   return () => {
-  //     document.removeEventListener("mousemove", handleMouseMove);
-  //   };
-  // }, []);
-
   if (isLoading)
     return (
       <main style={{ padding: "1rem 0" }}>

@@ -1,8 +1,6 @@
 "use client"; // Directive indicating that this is a client-side module in Next.js
 
-import { Playlist } from "@/components/component/playlist";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ethers } from "ethers";
 import Image from "next/image";
@@ -17,6 +15,8 @@ import {
   MdOutlineSkipPrevious
 } from "react-icons/md";
 
+import { PlaybackSlider } from "../components/PlaybackSlider";
+import { PlaylistBar } from "../components/PlaylistBar";
 import MusicUpload from "./components/MusicUpload";
 import { useBlockchain } from "./layout";
 // Define TypeScript interfaces for token and item data structures
@@ -130,16 +130,8 @@ export default function Home() {
 
   // Effect to load marketplace items on component mount
   useEffect(() => {
-    // Function to load dummy tracks
-    // const fetchTracks = async () => {
-    //   const tracks = await fetch("/tracks.json").then(response => response.json());
-    //   setMarketItems(tracks);
-    //   setPlaylist(tracks);
-    //   setIsLoading(false);
-    // };
     if (marketItems.length === 0) {
       fetchMarketItems(); // Fetch market items if the list is empty
-      // fetchTracks(); // Fetch tracks if the list is empty (dummy tracks)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -147,38 +139,24 @@ export default function Home() {
   // Function to skip to the next or previous song
   const handleChangeSong = useCallback(
     (isNext: boolean) => {
-      if (isNext) {
-        setCurrentAudioIndex(prevIndex => {
-          let newIndex = prevIndex + 1;
-          if (newIndex > playlist.length - 1) {
-            newIndex = 0; // Wrap around to the first item if at the end of the list
-          }
-          return newIndex;
-        });
-      } else {
-        setCurrentAudioIndex(prevIndex => {
-          let newIndex = prevIndex - 1;
-          if (newIndex < 0) {
-            newIndex = playlist.length - 1; // Wrap around to the last item if at the beginning of the list
-          }
-          return newIndex;
-        });
-      }
+      setCurrentAudioIndex(prevIndex => {
+        let newIndex = isNext ? prevIndex + 1 : prevIndex - 1;
+        if (newIndex < 0) newIndex = playlist.length - 1;
+        else if (newIndex >= playlist.length) newIndex = 0;
+        return newIndex;
+      });
+      setPlaybackPosition(0);
     },
     [playlist.length]
   ); // Add an empty array as the second argument
 
-  const shufflePlaylist = (songs: IItem[]) => {
-    const shuffledSongs = [...songs].sort(() => Math.random() - 0.5);
-    return shuffledSongs;
-  };
-
+  // Function to shuffle the playlist
   const handleShuffle = () => {
     const newShuffleState = !isShuffle;
     setIsShuffle(newShuffleState);
 
     if (newShuffleState) {
-      const shuffledPlaylist = shufflePlaylist([...marketItems]);
+      const shuffledPlaylist = [...marketItems].sort(() => Math.random() - 0.5);
       setPlaylist(shuffledPlaylist);
     } else {
       setPlaylist([...marketItems]);
@@ -187,6 +165,7 @@ export default function Home() {
     setCurrentAudioIndex(0);
   };
 
+  // Function to change the repeat mode
   const handleRepeatModeChange = () => {
     setRepeatMode(prevMode => {
       switch (prevMode) {
@@ -204,50 +183,28 @@ export default function Home() {
   useEffect(() => {
     const currentAudio = audioElement.current; // Capture audioElement.current in a local variable
 
+    // Function to handle song end event
     const handleEnd = () => {
-      switch (repeatMode) {
-        case repeatModes.NONE:
-          if (currentAudioIndex === playlist.length - 1) {
-            break;
-          } else {
-            setCurrentAudioIndex(prevIndex => {
-              let newIndex = prevIndex + 1;
-              if (newIndex > playlist.length - 1) {
-                newIndex = 0; // Wrap around to the first item if at the end of the list
-              }
-              return newIndex;
-            });
-          }
-          break;
-        case repeatModes.PLAYLIST:
-          setCurrentAudioIndex(prevIndex => {
-            let newIndex = prevIndex + 1;
-            if (newIndex > playlist.length - 1) {
-              newIndex = 0; // Wrap around to the first item if at the end of the list
-            }
-            return newIndex;
-          });
-          break;
-        case repeatModes.ONE:
-          setCurrentAudioIndex(prevIndex => {
-            let newIndex = prevIndex + 1;
-            if (newIndex > playlist.length - 1) {
-              newIndex = 0; // Wrap around to the first item if at the end of the list
-            }
-            return newIndex;
-          });
-          break;
+      if (repeatMode === repeatModes.ONE && currentAudio) {
+        currentAudio.currentTime = 0;
+        currentAudio.play();
+        return;
       }
+      if (
+        repeatMode === repeatModes.PLAYLIST ||
+        (repeatMode === repeatModes.NONE && currentAudioIndex !== playlist.length - 1)
+      )
+        handleChangeSong(true);
     };
 
+    // Function to update playback position
     const updateProgress = () => {
       if (currentAudio) {
         const currentTime = audioElement.current.currentTime;
         const duration = audioElement.current.duration;
         setElapsedTime(currentTime);
         setTotalTime(duration);
-        const progress = (currentTime / duration) * 100;
-        setPlaybackPosition(progress);
+        setPlaybackPosition((currentTime / duration) * 100);
       }
     };
 
@@ -262,8 +219,9 @@ export default function Home() {
         currentAudio.removeEventListener("ended", handleEnd);
       }
     };
-  }, [audioElement, handleChangeSong, repeatMode, currentAudioIndex, playlist.length]);
+  }, [repeatMode, currentAudioIndex, playlist.length, handleChangeSong]);
 
+  // Function to handle audio playback
   useEffect(() => {
     if (audioElement.current) {
       if (isAudioPlaying) {
@@ -272,8 +230,9 @@ export default function Home() {
         audioElement.current.pause();
       }
     }
-  }, [isAudioPlaying, audioElement, currentAudioIndex]);
+  }, [isAudioPlaying, currentAudioIndex]);
 
+  // Function to handle slider changes and update playback position
   const handleSliderChange = (value: number[]) => {
     if (audioElement.current) {
       const newTime = (value[0] / 100) * audioElement.current.duration;
@@ -282,6 +241,7 @@ export default function Home() {
     }
   };
 
+  // Function to format song elapsed time and total duration from seconds to mm:ss format
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "0:00";
 
@@ -335,7 +295,7 @@ export default function Home() {
         <audio ref={audioElement} src={playlist[currentAudioIndex]?.audio}></audio>
         <main className="grid grid-cols-7" role="main">
           <div className="col-span-2">
-            <Playlist
+            <PlaylistBar
               currentAudioIndex={currentAudioIndex}
               handleRepeatModeChange={handleRepeatModeChange}
               handleShuffle={handleShuffle}
@@ -356,14 +316,7 @@ export default function Home() {
                 <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
               </div>
               <div className="flex flex-col w-full items-center justify-center">
-                <Slider
-                  defaultValue={[0]}
-                  max={100}
-                  min={0}
-                  onValueChange={handleSliderChange}
-                  step={1}
-                  value={[playbackPosition]}
-                />
+                <PlaybackSlider handleSliderChange={handleSliderChange} playbackPosition={playbackPosition} />
                 {formatTime(elapsedTime)} / {formatTime(totalTime)}
               </div>
               <div className="flex pt-4">
