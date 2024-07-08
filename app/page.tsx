@@ -145,18 +145,9 @@ export default function Home() {
       fetchMarketItems(); // Refresh market items after purchase
       setIsAudioPlaying(!isAudioPlaying);
       setPlaybackPosition(0);
+      setCurrentAudioIndex(0);
     }
   };
-
-  // Effect to load marketplace items on component mount
-  useEffect(() => {
-    if (marketItems.length === 0 && userAccount && userAccount.toLowerCase() !== ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
-      fetchMarketItems(); // Fetch market items if the list is empty
-    } else {
-      setIsLoading(!isLoading);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Function to skip to the next or previous song
   const handleChangeSong = useCallback(
@@ -201,6 +192,34 @@ export default function Home() {
       }
     });
   };
+
+  // Function to handle slider changes and update playback position
+  const handleSliderChange = (value: number[]) => {
+    if (audioElement.current) {
+      const newTime = (value[0] / 100) * audioElement.current.duration;
+      audioElement.current.currentTime = newTime;
+      setPlaybackPosition(value[0]);
+    }
+  };
+
+  // Function to format song elapsed time and total duration from seconds to mm:ss format
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+  
+  // Effect to load marketplace items on component mount
+  useEffect(() => {
+    if (marketItems.length === 0 && userAccount && userAccount.toLowerCase() !== ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
+      fetchMarketItems(); // Fetch market items if the list is empty
+    } else {
+      setIsLoading(!isLoading);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const currentAudio = audioElement.current; // Capture audioElement.current in a local variable
@@ -253,24 +272,6 @@ export default function Home() {
       }
     }
   }, [isAudioPlaying, currentAudioIndex]);
-
-  // Function to handle slider changes and update playback position
-  const handleSliderChange = (value: number[]) => {
-    if (audioElement.current) {
-      const newTime = (value[0] / 100) * audioElement.current.duration;
-      audioElement.current.currentTime = newTime;
-      setPlaybackPosition(value[0]);
-    }
-  };
-
-  // Function to format song elapsed time and total duration from seconds to mm:ss format
-  const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return "0:00";
-
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
-  };
 
   // Render loading message if still loading
   if (isLoading)
@@ -330,14 +331,7 @@ export default function Home() {
 
           <div className="card col-span-3 space-y-10 px-4 text-primary">
             <div className="flex items-center justify-center pt-2">
-              <Image
-                alt=""
-                className="card-img-top"
-                height={300}
-                priority
-                src={playlist[currentAudioIndex]?.icon}
-                width={300}
-              />
+              <Image alt="" className="card-img-top" height={300} src={playlist[currentAudioIndex]?.icon} width={300} />
             </div>
             <div className="flex flex-col items-center justify-between px-4">
               <div className="h-36 flex flex-col justify-center">

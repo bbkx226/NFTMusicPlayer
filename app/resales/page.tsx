@@ -91,13 +91,6 @@ export default function Resales() {
     }
   };
 
-  // Effect to load user's resale items
-  useEffect(() => {
-    if (resaleItems && resaleItems.length === 0) {
-      loadUserResales();
-    }
-  });
-
   const handleSlideItemClick = (index: number, type: "listed" | "sold") => {
     const swiper = type === "listed" ? listedSwiper.current : soldSwiper.current;
     if (swiper) {
@@ -122,6 +115,13 @@ export default function Resales() {
       });
     }
   };
+
+  // Effect to load user's resale items
+  useEffect(() => {
+    if (resaleItems && resaleItems.length === 0) {
+      loadUserResales();
+    }
+  });
 
   useEffect(() => {
     if (listedSwiper.current) {

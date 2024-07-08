@@ -122,6 +122,23 @@ export default function Tokens() {
     loadUserTokens();
   };
 
+  const handleSlideItemClick = (index: number, type: "token") => {
+    const swiper = type == "token" ? tokenswiper.current : null;
+    if (swiper) {
+      swiper.slideTo(index);
+    }
+
+    if (type === "token") {
+      // Trigger the shiny effect
+      const slide = document.querySelectorAll(".glass-hover")[index];
+      slide.classList.remove("animate");
+      // Use requestAnimationFrame to force reflow
+      requestAnimationFrame(() => {
+        slide.classList.add("animate"); // Add the class to start the animation
+      });
+    }
+  };
+
   // Effect to handle audio play/pause
   useEffect(() => {
     if (isAudioPlaying) {
@@ -139,23 +156,6 @@ export default function Tokens() {
       loadUserTokens();
     }
   });
-
-  const handleSlideItemClick = (index: number, type: "token") => {
-    const swiper = type == "token" ? tokenswiper.current : null;
-    if (swiper) {
-      swiper.slideTo(index);
-    }
-
-    if (type === "token") {
-      // Trigger the shiny effect
-      const slide = document.querySelectorAll(".glass-hover")[index];
-      slide.classList.remove("animate");
-      // Use requestAnimationFrame to force reflow
-      requestAnimationFrame(() => {
-        slide.classList.add("animate"); // Add the class to start the animation
-      });
-    }
-  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -178,8 +178,16 @@ export default function Tokens() {
 
   if (isLoading)
     return (
-      <main style={{ padding: "1rem 0" }}>
-        <h2>Summoning Magic...</h2>
+      <main className="flex flex-col justify-center items-center py-40">
+        <div className="cube">
+          <div className="face front"></div>
+          <div className="face back"></div>
+          <div className="face left"></div>
+          <div className="face right"></div>
+          <div className="face top"></div>
+          <div className="face bottom"></div>
+        </div>
+        <h2 className="text-3xl font-bold moving-text mt-20">Summoning Magic... Your tunes are loading!</h2>
       </main>
     );
 

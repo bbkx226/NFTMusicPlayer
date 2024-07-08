@@ -103,6 +103,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Render the component
   return (
     <html lang="en">
+      <head>
+        <link href="/favicon.ico" rel="icon" sizes="any" />
+      </head>
       <body className="dark" suppressHydrationWarning={true}>
         <div className="text-center">
           <div>
