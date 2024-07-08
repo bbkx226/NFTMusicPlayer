@@ -124,6 +124,8 @@ export default function Home() {
     if (blockchainContract) {
       await (await blockchainContract.purchaseNFT(item.itemId, { value: item.price })).wait(); // Call purchaseNFT function on the blockchain and wait for the transaction to complete
       fetchMarketItems(); // Refresh market items after purchase
+      setIsAudioPlaying(!isAudioPlaying);
+      setPlaybackPosition(0);
     }
   };
 
@@ -307,7 +309,14 @@ export default function Home() {
 
           <div className="card col-span-3 space-y-10 px-4 text-primary">
             <div className="flex items-center justify-center pt-2">
-              <Image alt="" className="card-img-top" height={300} src={playlist[currentAudioIndex]?.icon} width={300} />
+              <Image
+                alt=""
+                className="card-img-top"
+                height={300}
+                priority
+                src={playlist[currentAudioIndex]?.icon}
+                width={300}
+              />
             </div>
             <div className="flex flex-col items-center justify-between px-4">
               <div className="h-36 flex flex-col justify-center">
@@ -349,16 +358,24 @@ export default function Home() {
           </div>
 
           <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
-            <div className="text-primary text-base font-bold">Buy This Song</div>
-            <div className="text-left">
-              <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
-              <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div>
-            </div>
-            <div className="flex justify-center">
-              <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
-                {`Buy for ${ethers.utils.formatEther(playlist[currentAudioIndex]?.price)} ETH`}
-              </Button>
-            </div>
+            {isAudioPlaying ? (
+              <>
+                <div className="text-primary text-base font-bold">Buy This Song</div>
+                <div className="text-left">
+                  <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
+                  <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div>
+                </div>
+                <div className="flex justify-center">
+                  <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
+                    {`Buy for ${ethers.utils.formatEther(playlist[currentAudioIndex]?.price)} ETH`}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center text-primary text-base font-bold">
+                Give the track a listen and let the vibes decide before making it yours!
+              </div>
+            )}
           </div>
         </main>
       </div>
