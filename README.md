@@ -2,6 +2,13 @@
 
 This is a Next.js blockchain project for MusicBox. Follow the steps below to run this project.
 
+## Team Members
+
+- Brandon Ban Kai Xian TP067094
+- Ang Xu Tian TP066856
+- They Kai Zhe TP062802
+- Wong Qian Jie TP063258
+
 ## Table of Contents
 
 - [Collaborating on GitHub](#collaborating-on-github)
@@ -61,6 +68,8 @@ Remember to replace `bbkx` with your actual branch name. Now, you're ready to co
 
 ## Run the Project
 
+> **Note:** Ensure you are connected to a stable WiFi network to prevent most of the bugs that can occur with MetaMask during the project setup and execution.
+
 1. Install the necessary dependencies:
 
 ```bash
@@ -69,23 +78,25 @@ npm i
 
 2. Navigate to the root directory of the project.
 
-3. Start the development server by running:
-
-```bash
-npm run dev
-```
-
-4. In a new terminal, start a local Ethereum network by running:
+3. In a new terminal, start a local Ethereum network by running:
 
 ```bash
 npx hardhat node
 ```
 
-5. Deploy your contracts to the local Ethereum network by running:
+4. Deploy your contracts to the local Ethereum network by running:
 
 ```bash
 npm run deploy
 ```
+
+5. Start the development server by running:
+
+```bash
+npm run dev
+```
+
+> **Note:** After launching the program for the first time, you may need to refresh the page to ensure everything loads correctly.
 
 ## Setting Up MetaMask for Hardhat
 

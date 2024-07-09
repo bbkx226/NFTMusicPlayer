@@ -89,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     if (typeof window.ethereum !== "undefined") {
       handleWeb3Connection();
     }
-  }, []);
+  });
 
   useEffect(() => {
     const ethereum = window.ethereum as ExtendedExternalProvider;
@@ -129,7 +129,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <div className="face top"></div>
                     <div className="face bottom"></div>
                   </div>
-                  <h2 className="text-3xl font-bold moving-text mt-20">Awaiting Metamask Connection...</h2>
+                  <h2 className="text-3xl font-bold moving-text mt-20">
+                    Awaiting Metamask Connection...
+                    <br />
+                    Please refresh the page after 3 seconds if the connection does not establish.
+                  </h2>
                 </main>
               ) : (
                 children
