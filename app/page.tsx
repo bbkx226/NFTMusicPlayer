@@ -291,29 +291,7 @@ export default function Home() {
   // Render loading message if still loading
   if (isLoading)
     return (
-      <main className="flex flex-col justify-center items-center py-40">
-        <div className="cube">
-          <div className="face front"></div>
-          <div className="face back"></div>
-          <div className="face left"></div>
-          <div className="face right"></div>
-          <div className="face top"></div>
-          <div className="face bottom"></div>
-        </div>
-        <h2 className="text-3xl font-bold moving-text mt-20">Spinning up the turntables... Your tunes are loading!</h2>
-      </main>
-    );
-
-  if (userAccount && userAccount.toLowerCase() === ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
-    return (
-      <div className="container mx-auto mt-5">
-        <main role="main">{s3 && <MusicUpload s3={s3} />}</main>
-      </div>
-    );
-  } else {
-    // Display a message if there are no items in the market
-    if (marketItems.length === 0) {
-      return (
+      <>
         <main className="flex flex-col justify-center items-center py-40">
           <div className="cube">
             <div className="face front"></div>
@@ -323,92 +301,130 @@ export default function Home() {
             <div className="face top"></div>
             <div className="face bottom"></div>
           </div>
-          <h2 className="text-3xl font-bold moving-text mt-20">Exploring the Horizon... No Treasures Spotted Yet!</h2>
+          <h2 className="text-3xl font-bold moving-text mt-20">
+            Spinning up the turntables... Your tunes are loading!
+          </h2>
         </main>
+      </>
+    );
+
+  if (userAccount && userAccount.toLowerCase() === ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
+    return (
+      <>
+        <div className="container mx-auto mt-5">
+          <main role="main">{s3 && <MusicUpload s3={s3} />}</main>
+        </div>
+      </>
+    );
+  } else {
+    // Display a message if there are no items in the market
+    if (marketItems.length === 0) {
+      return (
+        <>
+          <main className="flex flex-col justify-center items-center py-40">
+            <div className="cube">
+              <div className="face front"></div>
+              <div className="face back"></div>
+              <div className="face left"></div>
+              <div className="face right"></div>
+              <div className="face top"></div>
+              <div className="face bottom"></div>
+            </div>
+            <h2 className="text-3xl font-bold moving-text mt-20">Exploring the Horizon... No Treasures Spotted Yet!</h2>
+          </main>
+        </>
       );
     }
 
     return (
-      <div className="container mx-auto mt-5">
-        <audio ref={audioElement} src={playlist[currentAudioIndex]?.audio}></audio>
-        <main className="grid grid-cols-7" role="main">
-          <div className="col-span-2">
-            <PlaylistBar
-              currentAudioIndex={currentAudioIndex}
-              handleRepeatModeChange={handleRepeatModeChange}
-              handleShuffle={handleShuffle}
-              isShuffle={isShuffle}
-              repeatMode={repeatMode}
-              setCurrentAudioIndex={setCurrentAudioIndex}
-              tracks={playlist}
-            />
-          </div>
-
-          <div className="card col-span-3 space-y-10 px-4 text-primary">
-            <div className="flex items-center justify-center pt-2">
-              <Image alt="" className="card-img-top" height={300} src={playlist[currentAudioIndex]?.icon} width={300} />
+      <>
+        <div className="container mx-auto mt-5">
+          <audio ref={audioElement} src={playlist[currentAudioIndex]?.audio}></audio>
+          <main className="grid grid-cols-7" role="main">
+            <div className="col-span-2">
+              <PlaylistBar
+                currentAudioIndex={currentAudioIndex}
+                handleRepeatModeChange={handleRepeatModeChange}
+                handleShuffle={handleShuffle}
+                isShuffle={isShuffle}
+                repeatMode={repeatMode}
+                setCurrentAudioIndex={setCurrentAudioIndex}
+                tracks={playlist}
+              />
             </div>
-            <div className="flex flex-col items-center justify-between px-4">
-              <div className="h-36 flex flex-col justify-center">
-                <div className="text-4xl font-bold">{playlist[currentAudioIndex]?.name}</div>
-                <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
-              </div>
-              <div className="flex flex-col w-full items-center justify-center">
-                <PlaybackSlider handleSliderChange={handleSliderChange} playbackPosition={playbackPosition} />
-                {formatTime(elapsedTime)} / {formatTime(totalTime)}
-              </div>
-              <div className="flex pt-4">
-                <Button onClick={handleShuffle} variant="ghost">
-                  <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
-                </Button>
-                <Button onClick={() => handleChangeSong(false)} variant="ghost">
-                  <MdOutlineSkipPrevious className="w-8 h-8" />
-                </Button>
-                <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
-                  {isAudioPlaying ? (
-                    <MdOutlinePause className="w-10 h-10" />
-                  ) : (
-                    <MdOutlinePlayArrow className="w-10 h-10" />
-                  )}
-                </Button>
-                <Button onClick={() => handleChangeSong(true)} variant="ghost">
-                  <MdOutlineSkipNext className="w-8 h-8" />
-                </Button>
-                <Button onClick={handleRepeatModeChange} variant="ghost">
-                  {repeatMode === repeatModes.NONE ? (
-                    <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
-                  ) : repeatMode === repeatModes.PLAYLIST ? (
-                    <MdOutlineRepeat className="w-6 h-6 text-primary" />
-                  ) : (
-                    <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
 
-          <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
-            {isAudioPlaying ? (
-              <>
-                <div className="text-primary text-base font-bold">Buy This Song</div>
-                <div className="text-left">
-                  <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
-                  <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div>
+            <div className="card col-span-3 space-y-10 px-4 text-primary">
+              <div className="flex items-center justify-center pt-2">
+                <Image
+                  alt=""
+                  className="card-img-top"
+                  height={300}
+                  src={playlist[currentAudioIndex]?.icon}
+                  width={300}
+                />
+              </div>
+              <div className="flex flex-col items-center justify-between px-4">
+                <div className="h-36 flex flex-col justify-center">
+                  <div className="text-4xl font-bold">{playlist[currentAudioIndex]?.name}</div>
+                  <div className="text-2xl text-gray-400 py-2">{playlist[currentAudioIndex]?.artist}</div>
                 </div>
-                <div className="flex justify-center">
-                  <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
-                    {`Buy for ${ethers.utils.formatEther(playlist[currentAudioIndex]?.price)} ETH`}
+                <div className="flex flex-col w-full items-center justify-center">
+                  <PlaybackSlider handleSliderChange={handleSliderChange} playbackPosition={playbackPosition} />
+                  {formatTime(elapsedTime)} / {formatTime(totalTime)}
+                </div>
+                <div className="flex pt-4">
+                  <Button onClick={handleShuffle} variant="ghost">
+                    <MdOutlineShuffle className={cn("w-6 h-6 text-primary/50", { "text-primary": isShuffle })} />
+                  </Button>
+                  <Button onClick={() => handleChangeSong(false)} variant="ghost">
+                    <MdOutlineSkipPrevious className="w-8 h-8" />
+                  </Button>
+                  <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
+                    {isAudioPlaying ? (
+                      <MdOutlinePause className="w-10 h-10" />
+                    ) : (
+                      <MdOutlinePlayArrow className="w-10 h-10" />
+                    )}
+                  </Button>
+                  <Button onClick={() => handleChangeSong(true)} variant="ghost">
+                    <MdOutlineSkipNext className="w-8 h-8" />
+                  </Button>
+                  <Button onClick={handleRepeatModeChange} variant="ghost">
+                    {repeatMode === repeatModes.NONE ? (
+                      <MdOutlineRepeat className="w-6 h-6 text-primary/50" />
+                    ) : repeatMode === repeatModes.PLAYLIST ? (
+                      <MdOutlineRepeat className="w-6 h-6 text-primary" />
+                    ) : (
+                      <MdOutlineRepeatOne className="w-6 h-6 text-primary" />
+                    )}
                   </Button>
                 </div>
-              </>
-            ) : (
-              <div className="text-center text-primary text-base font-bold">
-                Give the track a listen and let the vibes decide before making it yours!
               </div>
-            )}
-          </div>
-        </main>
-      </div>
+            </div>
+
+            <div className="col-span-2 p-6 w-full max-w-md space-y-4 bg-background rounded-lg border">
+              {isAudioPlaying ? (
+                <>
+                  <div className="text-primary text-base font-bold">Buy This Song</div>
+                  <div className="text-left">
+                    <div className="text-lg font-bold">{playlist[currentAudioIndex]?.name}</div>
+                    <div className="text-sm text-gray-400">{playlist[currentAudioIndex]?.artist}</div>
+                  </div>
+                  <div className="flex justify-center">
+                    <Button onClick={() => purchaseItem(playlist[currentAudioIndex])} variant="outline">
+                      {`Buy for ${ethers.utils.formatEther(playlist[currentAudioIndex]?.price)} ETH`}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-primary text-base font-bold">
+                  Give the track a listen and let the vibes decide before making it yours!
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
+      </>
     );
   }
 }
