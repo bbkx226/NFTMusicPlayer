@@ -114,6 +114,21 @@ export default function Tokens() {
       return;
     }
 
+    if (Number(resellNFTPrice) > 1000) {
+      toast.error(
+        "Whoops! Looks like your price is off the charts 🚀. Please keep it real and enter a value less than 1000. 🔢",
+        {
+          duration: 4000,
+          icon: "⚠️",
+          style: {
+            background: "#333",
+            color: "#fff"
+          }
+        }
+      );
+      return;
+    }
+
     if (tokenItem.itemId !== resellNFTId || !resellNFTPrice || !blockchainContract) return;
     // Get royalty fee
     const fee = await blockchainContract.royaltyFeePercentage();

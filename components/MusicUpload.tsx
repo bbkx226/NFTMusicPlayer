@@ -16,8 +16,25 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0 && fileInputRef.current) {
+      const pattern = /^[a-zA-Z0-9\-_.]+$/;
+      const isValidFileName = pattern.test(fileInputRef.current.value);
+      if (isValidFileName) {
+        setFile(e.target.files[0]);
+      } else {
+        toast.error(
+          "Oops! Looks like your file name's playing a different tune 🎵. \n\nStick to letters, numbers, hyphens, and underscores, please! 🚀",
+          {
+            duration: 4000,
+            icon: "⚠️",
+            style: {
+              background: "#333",
+              color: "#fff"
+            }
+          }
+        );
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -171,10 +188,14 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 // Allow only numeric input
                 const value = e.target.value;
-                if (!isNaN(Number(value)) || value === "") {
+                if (
+                  (!isNaN(Number(value)) && Number(value) > 0 && Number(value) <= 1000) ||
+                  value === "" ||
+                  (/^\d*\.?\d*$/.test(value) && Number(value) > 0 && Number(value) <= 1000)
+                ) {
                   setPrice(value);
                 } else {
-                  toast.error("Please enter a numeric value. 🔢", {
+                  toast.error("Keep it cool and under 1000! Positive vibes only, please! 🔢✨", {
                     duration: 1500,
                     style: {
                       background: "#333",

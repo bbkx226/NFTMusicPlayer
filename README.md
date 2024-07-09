@@ -68,7 +68,9 @@ Remember to replace `bbkx` with your actual branch name. Now, you're ready to co
 
 ## Run the Project
 
-> **Note:** Ensure you are connected to a stable WiFi network to prevent most of the bugs that can occur with MetaMask during the project setup and execution.
+> **NOTE:** Ensure you are connected to a stable WiFi network to prevent most of the bugs that can occur with MetaMask during the project setup and execution.
+
+> **NOTE:** After launching the program for the first time, you may need to refresh the page to ensure everything loads correctly.
 
 1. Install the necessary dependencies:
 
@@ -95,8 +97,6 @@ npm run deploy
 ```bash
 npm run dev
 ```
-
-> **Note:** After launching the program for the first time, you may need to refresh the page to ensure everything loads correctly.
 
 ## Setting Up MetaMask for Hardhat
 
