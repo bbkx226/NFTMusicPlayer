@@ -102,7 +102,7 @@ export default function Tokens() {
 
   // Function to resell a token
   const resellNFT = async (tokenItem: TokenItem) => {
-    if (resellNFTPrice === "0") {
+    if (Number(resellNFTPrice) <= 0) {
       toast.error("Price must be more than zero. Please enter a positive value. 🔢", {
         duration: 4000,
         icon: "⚠️",
