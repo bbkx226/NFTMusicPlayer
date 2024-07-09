@@ -37,8 +37,10 @@ Before starting, ensure the following requirements are met:
    - Minimum 10 Mbps download/upload speed recommended
 
 5. **AWS S3 Configuration**
-   - AWS S3 bucket set up for music file storage
-   - AWS credentials properly configured in your environment
+   - AWS S3 bucket organized with two key folders:
+     - `songs`: Dedicated to storing music MP3 files.
+     - `database`: Holds JSON files for data management.
+   - Ensure AWS credentials are correctly configured in your environment.
 
 ## Setup
 
