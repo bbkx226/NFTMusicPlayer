@@ -141,7 +141,22 @@ export default function Home() {
   // Function to buy a marketplace item
   const purchaseItem = async (item: IItem): Promise<void> => {
     if (blockchainContract) {
-      await (await blockchainContract.purchaseNFT(item.itemId, { value: item.price })).wait(); // Call purchaseNFT function on the blockchain and wait for the transaction to complete
+      try {
+        await (await blockchainContract.purchaseNFT(item.itemId, { value: item.price })).wait(); // Call purchaseNFT function on the blockchain and wait for the transaction to complete
+      } catch {
+        toast.error(
+          "Encore! You've decided to hold the note and not proceed with the transaction. \n\n🎶 Feel the rhythm and try again when you're ready.",
+          {
+            duration: 4000,
+            icon: "📍",
+            style: {
+              background: "#333",
+              color: "#fff"
+            }
+          }
+        );
+        return;
+      }
       fetchMarketItems(); // Refresh market items after purchase
       setIsAudioPlaying(!isAudioPlaying);
       setPlaybackPosition(0);
@@ -210,7 +225,7 @@ export default function Home() {
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
-  
+
   // Effect to load marketplace items on component mount
   useEffect(() => {
     if (marketItems.length === 0 && userAccount && userAccount.toLowerCase() !== ARTIST_ACCOUNT_NUMBER.toLowerCase()) {
@@ -351,7 +366,7 @@ export default function Home() {
                 </Button>
                 <Button onClick={() => setIsAudioPlaying(!isAudioPlaying)} variant="ghost">
                   {isAudioPlaying ? (
-                    <MdOutlinePause className="w-8 h-8" />
+                    <MdOutlinePause className="w-10 h-10" />
                   ) : (
                     <MdOutlinePlayArrow className="w-10 h-10" />
                   )}

@@ -93,18 +93,20 @@ MetaMask is a browser extension that allows you to interact with the Ethereum bl
 
 1. Install MetaMask for your browser.
 
-2. Open MetaMask and click on the network selection dropdown (it will likely say "Ethereum Mainnet" by default).
+2. Make sure you've run the `npx hardhat node` command in your terminal to start your local Hardhat network.
 
-3. Click on "Custom RPC" to add a new network.
+3. Open MetaMask and click on the network selection dropdown (it will likely say "Ethereum Mainnet" by default).
 
-4. Enter the following details:
+4. Click on "Custom RPC" to add a new network.
+
+5. Enter the following details:
 
    - Network Name: `Hardhat`
    - New RPC URL: `http://localhost:8545`
    - ChainID: `31337`
    - Symbol (optional): `ETH`
 
-5. Click "Save". You should now be connected to your local Hardhat network.
+6. Click "Save". You should now be connected to your local Hardhat network.
 
 Next, you'll need to import accounts from your Hardhat network into MetaMask. When you start your Hardhat node, it outputs a list of accounts and their private keys. You can import these into MetaMask to interact with your contracts.
 

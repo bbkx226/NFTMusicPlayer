@@ -103,7 +103,7 @@ export default function Tokens() {
   // Function to resell a token
   const resellNFT = async (tokenItem: TokenItem) => {
     if (Number(resellNFTPrice) <= 0) {
-      toast.error("Price must be more than zero. Please enter a positive value. 🔢", {
+      toast.error("Price must be more than zero. Please enter a positive integer value. 🔢", {
         duration: 4000,
         icon: "⚠️",
         style: {
@@ -118,7 +118,23 @@ export default function Tokens() {
     // Get royalty fee
     const fee = await blockchainContract.royaltyFeePercentage();
     const price = ethers.utils.parseEther(resellNFTPrice.toString());
-    await (await blockchainContract.resellNFT(tokenItem.itemId, price, { value: fee })).wait();
+    try {
+      await (await blockchainContract.resellNFT(tokenItem.itemId, price, { value: fee })).wait();
+    } catch {
+      toast.error(
+        "Encore! You've decided to hold the note and not proceed with the transaction. \n\n🎶 Feel the rhythm and try again when you're ready.",
+        {
+          duration: 4000,
+          icon: "📍",
+          style: {
+            background: "#333",
+            color: "#fff"
+          }
+        }
+      );
+      return;
+    }
+
     loadUserTokens();
   };
 
@@ -303,14 +319,19 @@ export default function Tokens() {
                               <input
                                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 onChange={e => {
-                                  setresellNFTId(item.itemId);
-                                  setresellNFTPrice(e.target.value);
+                                  const value = e.target.value;
+                                  // Allow only digits and a single decimal point
+                                  if (/^\d*\.?\d*$/.test(value)) {
+                                    setresellNFTId(item.itemId);
+                                    setresellNFTPrice(value);
+                                  }
                                 }}
                                 placeholder="Price in ETH"
                                 required
-                                type="number"
+                                type="text"
                                 value={resellNFTId === item.itemId ? resellNFTPrice : ""}
                               />
+
                               <button className="glow-button" onClick={() => resellNFT(item)}>
                                 <span>Resell</span>
                               </button>

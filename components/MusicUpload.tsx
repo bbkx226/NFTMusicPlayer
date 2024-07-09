@@ -69,7 +69,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
           color: "#fff"
         }
       });
-      
+
       return `https://${params.Bucket}.s3.ap-southeast-1.amazonaws.com/${fileName}`;
     } catch (error) {
       console.error("Error uploading file: ", error);
@@ -199,7 +199,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
             />
           </div>
           <button
-            className="my-5 w-full flex justify-center bg-blue-500 text-gray-100 p-4 rounded-full tracking-wide font-semibold focus:outline-none focus:shadow-outline hover:bg-blue-600 shadow-lg cursor-pointer transition ease-in duration-300"
+            className="my-5 w-full flex justify-center bg-gray-600 text-gray-100 p-4 rounded-full tracking-wide font-semibold focus:outline-none focus:shadow-outline hover:bg-gray-500 shadow-lg cursor-pointer transition ease-in duration-300"
             type="submit"
           >
             {isUploading ? "Harmonizing the Blockchain 🎵⛓" : "Upload"}

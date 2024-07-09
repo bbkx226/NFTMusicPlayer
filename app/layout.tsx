@@ -89,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     if (typeof window.ethereum !== "undefined") {
       handleWeb3Connection();
     }
-  });
+  }, []);
 
   useEffect(() => {
     const ethereum = window.ethereum as ExtendedExternalProvider;
