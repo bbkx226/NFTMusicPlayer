@@ -17,13 +17,13 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0 && fileInputRef.current) {
-      const pattern = /^[a-zA-Z0-9\-_.]+$/;
+      const pattern = /^[a-zA-Z0-9\-_.\\/: ]+$/;
       const isValidFileName = pattern.test(fileInputRef.current.value);
       if (isValidFileName) {
         setFile(e.target.files[0]);
       } else {
         toast.error(
-          "Oops! Looks like your file name's playing a different tune 🎵. \n\nStick to letters, numbers, hyphens, and underscores, please! 🚀",
+          "Oops! Looks like your file name's playing a different tune 🎵. \n\nStick to letters, numbers, hyphens, space bar, and underscores, please! 🚀",
           {
             duration: 4000,
             icon: "⚠️",
