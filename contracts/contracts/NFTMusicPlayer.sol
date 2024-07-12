@@ -108,6 +108,17 @@ contract NFTMusicPlayer is ERC721("DAppFi", "DAPP"), Ownable {
         return (userNFTs);
     }
 
+
+    function addNewPrices(uint256[] memory _newPrices) external onlyOwner {
+        uint256 startingTokenId = marketItemList.length;
+        for (uint256 i = 0; i < _newPrices.length; i++) {
+            require(_newPrices[i] > 0, "NFT price must be greater than 0");
+            uint256 tokenId = startingTokenId + i;
+            _mint(address(this), tokenId);
+            marketItemList.push(MarketItem(tokenId, payable(msg.sender), _newPrices[i]));
+        }
+    }
+    
     /* Internal function that gets the baseURI initialized in the constructor */
     function _baseURI() internal view virtual override returns (string memory) {
         return nftBaseURI;

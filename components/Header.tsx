@@ -16,7 +16,8 @@ interface HeaderProps {
   userAccount: null | string;
 }
 
-const ARTIST_ACCOUNT_NUMBER = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const ARTIST_ACCOUNT_NUMBER =
+  process.env.NEXT_PUBLIC_MUSIC_ARTIST_DEFAULT_ADDRESS || "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 
 const Header: React.FC<HeaderProps> = ({ handleWeb3Connection, userAccount }) => {
   return (

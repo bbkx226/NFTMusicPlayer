@@ -1,6 +1,10 @@
 import AWS from "aws-sdk";
+import { ethers } from "ethers";
 import React, { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
+
+import NFTMusicPlayerAbi from "../abi/NFTMusicPlayer.json";
+import NFTMusicPlayerAddress from "../abi/NFTMusicPlayer-address.json";
 
 interface S3Props {
   s3: AWS.S3;
@@ -14,6 +18,16 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const clearFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Step 3: Clear the input
+    }
+  };
+
+  const validateInputs = () => {
+    return artistName.trim() !== "" && songName.trim() !== "" && price.trim() !== "" && file !== null;
+  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0 && fileInputRef.current) {
@@ -35,12 +49,6 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
         );
         fileInputRef.current.value = "";
       }
-    }
-  };
-
-  const clearFileInput = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Step 3: Clear the input
     }
   };
 
@@ -93,12 +101,49 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
     }
   };
 
-  const validateInputs = () => {
-    return artistName.trim() !== "" && songName.trim() !== "" && price.trim() !== "" && file !== null;
-  };
+  async function updateContractWithNewPrice(newPrice: string) {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(NFTMusicPlayerAddress.address, NFTMusicPlayerAbi.abi, signer);
+      const priceInWei = ethers.utils.parseEther(newPrice);
+      const tx = await contract.addNewPrices([priceInWei]);
+      await tx.wait();
+
+      toast.success("Contract updated with new price!", {
+        duration: 4000,
+        icon: "🎉",
+        style: {
+          background: "#333",
+          color: "#fff"
+        }
+      });
+    } catch (error) {
+      console.error("Error updating contract:", error);
+      toast.error("Failed to update contract. Please try again.", {
+        duration: 4000,
+        icon: "❌",
+        style: {
+          background: "#333",
+          color: "#fff"
+        }
+      });
+    }
+  }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (Number(price) <= 0 || Number(price) > 1000) {
+      toast.error("Keep it cool and under 1000! Positive vibes only, please! 🔢✨", {
+        duration: 1500,
+        style: {
+          background: "#333",
+          color: "#fff"
+        }
+      });
+      return;
+    }
 
     if (!validateInputs()) {
       toast.error("Please fill in all fields. 📝", {
@@ -112,6 +157,7 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
       return;
     }
     setIsUploading(true);
+
     const jsonFiles = await listS3Objects("database/");
     const jsonFileCount = jsonFiles.length;
     const tokenId = jsonFileCount;
@@ -135,6 +181,22 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
       tokenId: tokenId
     };
     const metadataFileName = `database/${tokenId}.json`;
+
+    try {
+      await updateContractWithNewPrice(price);
+    } catch (error) {
+      toast.error("Failed to update contract. Please try again.", {
+        duration: 4000,
+        icon: "❌",
+        style: {
+          background: "#333",
+          color: "#fff"
+        }
+      });
+      setIsUploading(false);
+      return;
+    }
+
     try {
       await uploadFileToS3(new Blob([JSON.stringify(metadata)], { type: "application/json" }), metadataFileName);
     } catch (error) {
@@ -188,20 +250,8 @@ const MusicUpload: React.FC<S3Props> = ({ s3 }) => {
               onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 // Allow only numeric input
                 const value = e.target.value;
-                if (
-                  (!isNaN(Number(value)) && Number(value) > 0 && Number(value) <= 1000) ||
-                  value === "" ||
-                  (/^\d*\.?\d*$/.test(value) && Number(value) > 0 && Number(value) <= 1000)
-                ) {
+                if (/^\d*\.?\d*$/.test(value)) {
                   setPrice(value);
-                } else {
-                  toast.error("Keep it cool and under 1000! Positive vibes only, please! 🔢✨", {
-                    duration: 1500,
-                    style: {
-                      background: "#333",
-                      color: "#fff"
-                    }
-                  });
                 }
               }}
               placeholder="Price in ETH"
