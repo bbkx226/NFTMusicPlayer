@@ -116,7 +116,6 @@ const MusicUpload: React.FC<S3Props> = ({ blockchainContract, s3 }) => {
       });
       return true;
     } catch (error) {
-      console.log(error);
       toast.error(
         "Contract hiccup! \n\n🎶 Your music's still a hit. Upload again when you're ready to top the charts!",
         {
