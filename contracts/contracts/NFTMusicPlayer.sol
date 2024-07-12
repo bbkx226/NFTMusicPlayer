@@ -110,13 +110,13 @@ contract NFTMusicPlayer is ERC721("DAppFi", "DAPP"), Ownable {
 
 
     function addNewPrices(uint256[] memory _newPrices) external onlyOwner {
-        uint256 startingTokenId = marketItemList.length;
-        for (uint256 i = 0; i < _newPrices.length; i++) {
-            require(_newPrices[i] > 0, "NFT price must be greater than 0");
-            uint256 tokenId = startingTokenId + i;
-            _mint(address(this), tokenId);
-            marketItemList.push(MarketItem(tokenId, payable(msg.sender), _newPrices[i]));
-        }
+        require(_newPrices.length > 0, "Must provide at least one price");
+        uint256 lastPriceIndex = _newPrices.length - 1;
+        uint256 tokenId = marketItemList.length;
+
+        require(_newPrices[lastPriceIndex] > 0, "NFT price must be greater than 0");
+        _mint(address(this), tokenId);
+        marketItemList.push(MarketItem(tokenId, payable(msg.sender), _newPrices[lastPriceIndex]));
     }
     
     /* Internal function that gets the baseURI initialized in the constructor */

@@ -52,8 +52,10 @@ export default function Resales() {
             const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME_ENV || "";
             const uri = await blockchainContract.tokenURI(args.nftTokenId);
             const url = new URL(uri);
-            const objectKey = url.pathname.startsWith("/") ? `${url.pathname}.json`.slice(1) : `${url.pathname}.json`;
-
+            // Extract the numeric part of the pathname, ensuring it's at least 4 characters long with leading zeros
+            const match = url.pathname.match(/\d+$/);
+            const numericPart = match ? match[0].padStart(4, "0") : "0000";
+            const objectKey = `database/${numericPart}.json`;
             try {
               const fileData = await s3.getObject({ Bucket: bucketName, Key: objectKey }).promise();
               metadata = fileData.Body ? JSON.parse(fileData.Body.toString("utf-8")) : null;

@@ -25,7 +25,13 @@ async function fetchPricesFromJsonFiles() {
     };
 
     const data = await s3.listObjectsV2(params).promise();
-    const files = data.Contents.map(item => item.Key).filter(key => key.endsWith(".json"));
+    const files = data.Contents.map(item => item.Key)
+      .filter(key => key.endsWith(".json"))
+      .sort((a, b) => {
+        const numA = parseInt(a.match(/\d+/)[0], 10); // Extract number from filename a
+        const numB = parseInt(b.match(/\d+/)[0], 10); // Extract number from filename b
+        return numA - numB; // Sort in ascending order
+      });
     console.log(`Found ${files.length} JSON files.`);
 
     for (const fileKey of files) {
@@ -35,6 +41,7 @@ async function fetchPricesFromJsonFiles() {
       };
       const fileData = await s3.getObject(fileParams).promise();
       const fileContent = JSON.parse(fileData.Body.toString("utf-8"));
+      console.log(fileContent);
       if (fileContent.price) {
         prices.push(toWei(fileContent.price)); // Push the price into the prices array
       }
