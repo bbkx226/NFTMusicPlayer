@@ -136,6 +136,7 @@ export default function Home() {
         })
       );
       setMarketItems(fetchedItems);
+      console.log(fetchedItems); // NOTE: For Debugging Purpose
       setPlaylist(fetchedItems);
       setIsLoading(false);
     }

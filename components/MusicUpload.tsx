@@ -102,7 +102,9 @@ const MusicUpload: React.FC<S3Props> = ({ blockchainContract, s3 }) => {
   async function updateContractWithNewPrice(newPrice: string) {
     try {
       const priceInWei = ethers.utils.parseEther(newPrice);
-      await (await blockchainContract.addNewPrices([priceInWei])).wait();
+      await (await blockchainContract.addNewPrice(priceInWei)).wait();
+      const items = await blockchainContract.getMarketItemList();
+      console.log("Market Items:", items); // NOTE: For Debugging Purpose
 
       toast.success("Contract updated with new price!", {
         duration: 4000,
@@ -114,14 +116,18 @@ const MusicUpload: React.FC<S3Props> = ({ blockchainContract, s3 }) => {
       });
       return true;
     } catch (error) {
-      toast.error("Failed to update contract. Please try again.", {
-        duration: 4000,
-        icon: "❌",
-        style: {
-          background: "#333",
-          color: "#fff"
+      console.log(error);
+      toast.error(
+        "Contract hiccup! \n\n🎶 Your music's still a hit. Upload again when you're ready to top the charts!",
+        {
+          duration: 4000,
+          icon: "❌",
+          style: {
+            background: "#333",
+            color: "#fff"
+          }
         }
-      });
+      );
       return false;
     }
   }
